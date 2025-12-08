@@ -283,14 +283,17 @@
 
     loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-
+    
         errorAlert.style.display = "none";
         successAlert.style.display = "none";
-
+    
         loginBtn.disabled = true;
         spinner.style.display = "block";
-
+    
         try {
+            console.log("=== LOGIN ATTEMPT STARTED ===");
+            console.log("Username:", usernameInput.value.trim());
+            
             const res = await fetch("https://asiukpohr.nocodeinfolab.workers.dev/login", {
                 method: "POST",
                 credentials: "include",
@@ -300,19 +303,41 @@
                     password: passwordInput.value
                 })
             });
-
+    
             const data = await res.json();
-
+            console.log("=== SERVER RESPONSE ===");
+            console.log("Status:", res.status);
+            console.log("Data:", data);
+            
+            // Display debug logs if available
+            if (data.debug) {
+                console.log("=== DEBUG LOGS FROM WORKER ===");
+                data.debug.forEach(log => {
+                    console.group(`[${log.timestamp}] ${log.message}`);
+                    if (log.data) console.log("Data:", log.data);
+                    console.groupEnd();
+                });
+            }
+    
             if (!res.ok || !data.success) {
-                showAlert("error", data.message || "Invalid login credentials");
+                const errorMsg = data.message || `Login failed (${res.status})`;
+                showAlert("error", errorMsg);
+                
+                // Log detailed error info
+                if (data.error) {
+                    console.error("Server error:", data.error);
+                }
             } else {
-                showAlert("success", "Login successful! Redirecting...");
+                showAlert("success", data.message || "Login successful! Redirecting...");
                 setTimeout(() => window.location.href = "/dashboard", 1500);
             }
-        } catch {
-            showAlert("error", "Network error. Try again.");
+        } catch (error) {
+            console.error("=== FETCH ERROR ===");
+            console.error("Error:", error);
+            console.error("Error message:", error.message);
+            showAlert("error", `Connection error: ${error.message}`);
         }
-
+    
         loginBtn.disabled = false;
         spinner.style.display = "none";
     });
