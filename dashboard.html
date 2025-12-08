@@ -557,12 +557,12 @@
             </div>
             
             <ul class="nav-links">
-                <li><a href="#" class="active"><i class="fas fa-home"></i> <span>Dashboard</span></a></li>
-                <li><a href="#"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
-                <li><a href="#"><i class="fas fa-calendar-alt"></i> <span>Leave Calendar</span></a></li>
-                <li><a href="#"><i class="fas fa-history"></i> <span>Leave History</span></a></li>
-                <li><a href="#"><i class="fas fa-file-contract"></i> <span>Documents</span></a></li>
-                <li><a href="#"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
+                <li><a href="#" class="active" data-tab="dashboard"><i class="fas fa-home"></i> <span>Dashboard</span></a></li>
+                <li><a href="#" data-tab="profile"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+                <li><a href="#" data-tab="calendar"><i class="fas fa-calendar-alt"></i> <span>Leave Calendar</span></a></li>
+                <li><a href="#" data-tab="history"><i class="fas fa-history"></i> <span>Leave History</span></a></li>
+                <li><a href="#" data-tab="documents"><i class="fas fa-file-contract"></i> <span>Documents</span></a></li>
+                <li><a href="#" data-tab="settings"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
             </ul>
             
             <div class="user-profile">
@@ -700,6 +700,18 @@
                 </div>
             </div>
         </main>
+
+        <!-- Leave History Tab Page -->
+        <div id="leaveHistoryPage" class="hidden">
+            <h3 class="section-title">Leave History</h3>
+
+            <div id="leaveHistoryContainer" class="card" style="padding: 20px;">
+                <div style="text-align:center; padding: 20px;">
+                    <div class="loading-spinner" style="margin:auto;"></div>
+                    <p style="margin-top:10px;color:var(--gray);">Loading your leave records...</p>
+                </div>
+            </div>
+        </div>
     </div>
     
     <!-- Leave Application Modal -->
@@ -824,6 +836,74 @@
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
                 throw error;
+            }
+        }
+
+        // Load Leave History
+        async function loadLeaveHistory() {
+            const container = document.getElementById('leaveHistoryContainer');
+
+            try {
+                const response = await fetch(`${API_BASE}/leave-history`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                leaveHistoryLoaded = true;
+
+                if (!data.success) {
+                    container.innerHTML = `<p style="padding:20px;color:var(--danger);">${data.message || 'Failed to load records'}</p>`;
+                    return;
+                }
+
+                if (!data.records.length) {
+                    container.innerHTML = `<p style="padding:20px;color:var(--gray);text-align:center">No leave history found.</p>`;
+                    return;
+                }
+
+                // build table
+                const tableHTML = `
+                <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                    <thead>
+                        <tr style="background:#f0f0f0;">
+                            <th style="padding:8px;border:1px solid #ddd;">Leave Type</th>
+                            <th style="padding:8px;border:1px solid #ddd;">Start</th>
+                            <th style="padding:8px;border:1px solid #ddd;">End</th>
+                            <th style="padding:8px;border:1px solid #ddd;">Days</th>
+                            <th style="padding:8px;border:1px solid #ddd;">Status</th>
+                            <th style="padding:8px;border:1px solid #ddd;">Rejection Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.records.map(r => `
+                            <tr>
+                                <td style="padding:8px;border:1px solid #ddd;">${r.leaveType || 'N/A'}</td>
+                                <td style="padding:8px;border:1px solid #ddd;">${formatDate(r.startDate)}</td>
+                                <td style="padding:8px;border:1px solid #ddd;">${formatDate(r.endDate)}</td>
+                                <td style="padding:8px;border:1px solid #ddd;">${r.daysRequested || 'N/A'}</td>
+                                <td style="padding:8px;border:1px solid #ddd;">
+                                    <span style="
+                                        background:${r.status === 'Approved' ? 'var(--success)'
+                                        : r.status === 'Rejected' ? 'var(--danger)'
+                                        : 'var(--warning)'};
+                                        color:white;padding:4px 8px;border-radius:6px;">
+                                        ${r.status}
+                                    </span>
+                                </td>
+                                <td style="padding:8px;border:1px solid #ddd;">${r.rejectionReason || ''}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                `;
+
+                container.innerHTML = tableHTML;
+
+            } catch (error) {
+                container.innerHTML = `<p style="padding:20px;color:var(--danger);">Error loading leave history</p>`;
+                console.error(error);
             }
         }
 
@@ -980,6 +1060,49 @@
             };
             
             modalTitle.textContent = `Apply for ${typeNames[this.value]}`;
+        });
+
+        // PAGE SWITCHING
+        const dashboardPage = document.querySelector('.main-content');
+        const leaveHistoryPage = document.getElementById('leaveHistoryPage');
+        let leaveHistoryLoaded = false;
+
+        // show tab & hide others
+        function showTab(tab) {
+            // Remove active styling from sidebar
+            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+
+            // Hide all subpages
+            leaveHistoryPage.classList.add('hidden');
+
+            // Show target page
+            switch (tab) {
+                case 'dashboard':
+                    dashboardPage.classList.remove('hidden');
+                    break;
+
+                case 'history':
+                    dashboardPage.classList.add('hidden');
+                    leaveHistoryPage.classList.remove('hidden');
+                    if (!leaveHistoryLoaded) loadLeaveHistory();
+                    break;
+
+                default:
+                    alert("Coming soon!");
+                    break;
+            }
+
+            // highlight active link
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+        }
+
+        // Bind sidebar clicks
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                const tab = link.getAttribute('data-tab');
+                showTab(tab);
+            });
         });
         
         // Initialize on page load
