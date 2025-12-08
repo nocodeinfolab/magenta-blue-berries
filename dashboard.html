@@ -1,1 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Connect | Employee Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #1abc9c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --gray: #95a5a6;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --radius: 8px;
+        }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background-color: var(--primary);
+            color: white;
+            padding: 25px 0;
+            box-shadow: var(--shadow);
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            padding: 0 25px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: var(--accent);
+            margin-right: 12px;
+        }
+
+        .logo h1 {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .nav-links {
+            list-style: none;
+            padding: 0 15px;
+        }
+
+        .nav-links li {
+            margin-bottom: 5px;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            border-radius: var(--radius);
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-links i {
+            margin-right: 15px;
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .user-profile {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            padding: 0 25px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius);
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+
+        .user-details h4 {
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .user-details p {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h2 {
+            color: var(--dark);
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .notification {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification i {
+            font-size: 22px;
+            color: var(--dark);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Cards */
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .annual-leave .card-icon {
+            background-color: rgba(52, 152, 219, 0.15);
+            color: var(--secondary);
+        }
+
+        .queries .card-icon {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: var(--success);
+        }
+
+        .employment .card-icon {
+            background-color: rgba(155, 89, 182, 0.15);
+            color: #9b59b6;
+        }
+
+        .leave-balance .card-icon {
+            background-color: rgba(241, 196, 15, 0.15);
+            color: #f1c40f;
+        }
+
+        .leave-days {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .leave-days span {
+            font-size: 16px;
+            color: var(--gray);
+            font-weight: normal;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 5px;
+            background-color: var(--accent);
+        }
+
+        /* Leave Types */
+        .section-title {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .leave-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .leave-type-card {
+            background-color: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .leave-type-card:hover {
+            border-color: var(--accent);
+        }
+
+        .leave-type-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 24px;
+        }
+
+        .annual .leave-type-icon {
+            background-color: rgba(52, 152, 219, 0.15);
+            color: var(--secondary);
+        }
+
+        .casual .leave-type-icon {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: var(--success);
+        }
+
+        .sick .leave-type-icon {
+            background-color: rgba(230, 126, 34, 0.15);
+            color: #e67e22;
+        }
+
+        .maternity .leave-type-icon {
+            background-color: rgba(155, 89, 182, 0.15);
+            color: #9b59b6;
+        }
+
+        .leave-type-card h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .leave-type-card p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* Queries Section */
+        .queries-section {
+            background-color: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 40px;
+        }
+
+        .query-item {
+            border-bottom: 1px solid #eee;
+            padding: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .query-item:last-child {
+            border-bottom: none;
+        }
+
+        .query-info h4 {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+
+        .query-info p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .query-status {
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background-color: rgba(243, 156, 18, 0.15);
+            color: var(--warning);
+        }
+
+        .status-responded {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: var(--success);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-accent {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-accent:hover {
+            background-color: #16a085;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: var(--dark);
+            font-size: 22px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--radius);
+            font-size: 15px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+                overflow: hidden;
+            }
+            
+            .logo h1, .nav-links span, .user-details {
+                display: none;
+            }
+            
+            .logo {
+                justify-content: center;
+                padding: 0 0 30px;
+            }
+            
+            .logo i {
+                margin-right: 0;
+            }
+            
+            .nav-links a {
+                justify-content: center;
+                padding: 20px;
+            }
+            
+            .nav-links i {
+                margin-right: 0;
+                font-size: 20px;
+            }
+            
+            .main-content {
+                margin-left: 80px;
+            }
+            
+            .user-profile {
+                padding: 0 10px;
+            }
+            
+            .user-info {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+            
+            .dashboard-cards, .leave-types {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .header-actions {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-users"></i>
+                <h1>HR Connect</h1>
+            </div>
+            
+            <ul class="nav-links">
+                <li><a href="#" class="active"><i class="fas fa-home"></i> <span>Dashboard</span></a></li>
+                <li><a href="#"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+                <li><a href="#"><i class="fas fa-calendar-alt"></i> <span>Leave Calendar</span></a></li>
+                <li><a href="#"><i class="fas fa-history"></i> <span>Leave History</span></a></li>
+                <li><a href="#"><i class="fas fa-file-contract"></i> <span>Documents</span></a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
+            </ul>
+            
+            <div class="user-profile">
+                <div class="user-info">
+                    <div class="user-avatar">JD</div>
+                    <div class="user-details">
+                        <h4>John Doe</h4>
+                        <p>Senior Developer</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <h2>Employee Dashboard</h2>
+                <div class="header-actions">
+                    <div class="notification">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <button class="btn btn-primary" id="applyLeaveBtn">
+                        <i class="fas fa-plus-circle"></i> Apply for Leave
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Dashboard Cards -->
+            <div class="dashboard-cards">
+                <div class="card annual-leave">
+                    <div class="card-header">
+                        <h3 class="card-title">Annual Leave Balance</h3>
+                        <div class="card-icon">
+                            <i class="fas fa-umbrella-beach"></i>
+                        </div>
+                    </div>
+                    <div class="leave-days">16<span> / 24 days</span></div>
+                    <p>Remaining days for this year</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 66%"></div>
+                    </div>
+                </div>
+                
+                <div class="card queries">
+                    <div class="card-header">
+                        <h3 class="card-title">My Queries</h3>
+                        <div class="card-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                    </div>
+                    <div class="leave-days">2</div>
+                    <p>Pending queries requiring your response</p>
+                    <button class="btn btn-accent" style="margin-top: 15px;">View Queries</button>
+                </div>
+                
+                <div class="card employment">
+                    <div class="card-header">
+                        <h3 class="card-title">Employment Details</h3>
+                        <div class="card-icon">
+                            <i class="fas fa-id-badge"></i>
+                        </div>
+                    </div>
+                    <p><strong>Department:</strong> Engineering</p>
+                    <p><strong>Position:</strong> Senior Developer</p>
+                    <p><strong>Employee ID:</strong> EMP-2023-045</p>
+                    <button class="btn btn-primary" style="margin-top: 15px;">View Details</button>
+                </div>
+            </div>
+            
+            <!-- Leave Types -->
+            <h3 class="section-title">Apply for Leave</h3>
+            <div class="leave-types">
+                <div class="leave-type-card annual" data-type="annual">
+                    <div class="leave-type-icon">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                    <h3>Annual Leave</h3>
+                    <p>Plan your vacations and personal time off</p>
+                </div>
+                
+                <div class="leave-type-card casual" data-type="casual">
+                    <div class="leave-type-icon">
+                        <i class="fas fa-coffee"></i>
+                    </div>
+                    <h3>Casual Leave</h3>
+                    <p>Short-term leave for personal reasons</p>
+                </div>
+                
+                <div class="leave-type-card sick" data-type="sick">
+                    <div class="leave-type-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <h3>Sick Leave</h3>
+                    <p>Medical leave for health-related issues</p>
+                </div>
+                
+                <div class="leave-type-card maternity" data-type="maternity">
+                    <div class="leave-type-icon">
+                        <i class="fas fa-baby"></i>
+                    </div>
+                    <h3>Maternity Leave</h3>
+                    <p>Leave for expecting mothers</p>
+                </div>
+            </div>
+            
+            <!-- Recent Queries -->
+            <h3 class="section-title">Recent Queries</h3>
+            <div class="queries-section">
+                <div class="query-item">
+                    <div class="query-info">
+                        <h4>Leave Request Clarification</h4>
+                        <p>HR asked for additional documentation for your recent leave request</p>
+                        <p><small>Received: 2 days ago</small></p>
+                    </div>
+                    <div class="query-status status-pending">Pending Response</div>
+                </div>
+                
+                <div class="query-item">
+                    <div class="query-info">
+                        <h4>Tax Form Update</h4>
+                        <p>Please review and confirm your updated tax information</p>
+                        <p><small>Received: 5 days ago</small></p>
+                    </div>
+                    <div class="query-status status-responded">Responded</div>
+                </div>
+                
+                <div class="query-item">
+                    <div class="query-info">
+                        <h4>Performance Review Schedule</h4>
+                        <p>Your Q3 performance review has been scheduled for Oct 15</p>
+                        <p><small>Received: 1 week ago</small></p>
+                    </div>
+                    <div class="query-status status-responded">Responded</div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Leave Application Modal -->
+    <div class="modal" id="leaveModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Apply for Annual Leave</h3>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            
+            <form id="leaveForm">
+                <div class="form-group">
+                    <label for="leaveType">Leave Type</label>
+                    <select class="form-control" id="leaveType" required>
+                        <option value="annual">Annual Leave</option>
+                        <option value="casual">Casual Leave</option>
+                        <option value="sick">Sick Leave</option>
+                        <option value="maternity">Maternity Leave</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" class="form-control" id="startDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="endDate">End Date</label>
+                    <input type="date" class="form-control" id="endDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="leaveDays">Number of Days</label>
+                    <input type="number" class="form-control" id="leaveDays" min="1" max="24" value="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reason">Reason for Leave</label>
+                    <textarea class="form-control" id="reason" rows="4" placeholder="Provide details for your leave request" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="contact">Contact During Leave</label>
+                    <input type="text" class="form-control" id="contact" placeholder="Phone number or email" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">
+                    Submit Leave Application
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const applyLeaveBtn = document.getElementById('applyLeaveBtn');
+        const closeModalBtn = document.getElementById('closeModal');
+        const leaveModal = document.getElementById('leaveModal');
+        const leaveForm = document.getElementById('leaveForm');
+        const leaveTypeSelect = document.getElementById('leaveType');
+        const modalTitle = document.getElementById('modalTitle');
+        const leaveDaysInput = document.getElementById('leaveDays');
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const leaveTypeCards = document.querySelectorAll('.leave-type-card');
+        
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        startDateInput.min = today;
+        endDateInput.min = today;
+        
+        // Update end date min when start date changes
+        startDateInput.addEventListener('change', function() {
+            endDateInput.min = this.value;
+        });
+        
+        // Calculate days between dates
+        function calculateDays() {
+            if (startDateInput.value && endDateInput.value) {
+                const start = new Date(startDateInput.value);
+                const end = new Date(endDateInput.value);
+                const diffTime = Math.abs(end - start);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                leaveDaysInput.value = diffDays;
+            }
+        }
+        
+        startDateInput.addEventListener('change', calculateDays);
+        endDateInput.addEventListener('change', calculateDays);
+        
+        // Open modal when Apply for Leave button is clicked
+        applyLeaveBtn.addEventListener('click', () => {
+            leaveModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        });
+        
+        // Close modal when X button is clicked
+        closeModalBtn.addEventListener('click', () => {
+            leaveModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+        
+        // Close modal when clicking outside the modal content
+        window.addEventListener('click', (e) => {
+            if (e.target === leaveModal) {
+                leaveModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+        
+        // Handle leave type card clicks
+        leaveTypeCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const type = card.getAttribute('data-type');
+                leaveTypeSelect.value = type;
+                
+                // Update modal title based on selected type
+                const typeNames = {
+                    'annual': 'Annual Leave',
+                    'casual': 'Casual Leave',
+                    'sick': 'Sick Leave',
+                    'maternity': 'Maternity Leave'
+                };
+                
+                modalTitle.textContent = `Apply for ${typeNames[type]}`;
+                leaveModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            });
+        });
+        
+        // Handle form submission
+        leaveForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Get form values
+            const leaveType = leaveTypeSelect.value;
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+            const leaveDays = leaveDaysInput.value;
+            const reason = document.getElementById('reason').value;
+            
+            // In a real app, this would be sent to a backend
+            console.log('Leave Application Submitted:', {
+                leaveType,
+                startDate,
+                endDate,
+                leaveDays,
+                reason
+            });
+            
+            // Show success message
+            alert(`Your ${leaveType} application for ${leaveDays} days has been submitted successfully!`);
+            
+            // Close modal and reset form
+            leaveModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            leaveForm.reset();
+            
+            // Update the annual leave balance (demo only)
+            if (leaveType === 'annual') {
+                const currentBalance = parseInt(document.querySelector('.leave-days').textContent);
+                const newBalance = currentBalance - parseInt(leaveDays);
+                
+                if (newBalance >= 0) {
+                    document.querySelector('.leave-days').textContent = newBalance + ' / 24 days';
+                    document.querySelector('.progress-fill').style.width = `${(newBalance/24)*100}%`;
+                    
+                    // Add to leave history (in a real app)
+                    console.log(`Annual leave balance updated to ${newBalance} days`);
+                }
+            }
+        });
+        
+        // Update modal title when leave type changes
+        leaveTypeSelect.addEventListener('change', function() {
+            const typeNames = {
+                'annual': 'Annual Leave',
+                'casual': 'Casual Leave',
+                'sick': 'Sick Leave',
+                'maternity': 'Maternity Leave'
+            };
+            
+            modalTitle.textContent = `Apply for ${typeNames[this.value]}`;
+        });
+        
+        // Demo data for dynamic interactions
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set default dates
+            const nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            const nextWeekPlusTwo = new Date(nextWeek);
+            nextWeekPlusTwo.setDate(nextWeekPlusTwo.getDate() + 2);
+            
+            startDateInput.valueAsDate = nextWeek;
+            endDateInput.valueAsDate = nextWeekPlusTwo;
+            
+            // Calculate initial days
+            calculateDays();
+            
+            // Simulate notification click
+            document.querySelector('.notification').addEventListener('click', function() {
+                alert('You have 3 notifications: 1 new leave approval, 1 query response, 1 policy update');
+            });
+        });
+    </script>
+</body>
+</html>
