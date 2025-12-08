@@ -578,6 +578,7 @@
         
         <!-- Main Content -->
         <main class="main-content">
+        <!-- Header -->
             <div class="header">
                 <h2 id="headerTitle">Employee Dashboard</h2>
                 <div class="header-actions">
@@ -586,133 +587,130 @@
                         <span class="notification-badge">0</span>
                     </div>
                     <button class="btn btn-primary" id="applyLeaveBtn">
-                        <i class="fas fa-plus-circle"></i> Apply for Leave
+                        <i class="fas fa-plus-circle"></i>
+                        Apply for Leave
                     </button>
                 </div>
             </div>
 
-            <!-- Error Message (hidden by default) -->
+            <!-- Error Message -->
             <div class="error-message hidden" id="errorMessage"></div>
-            
-            <!-- Dashboard Cards -->
-            <div class="dashboard-cards">
-                <div class="card profile-info">
-                    <div class="card-header">
-                        <h3 class="card-title">Personal Information</h3>
-                        <div class="card-icon">
-                            <i class="fas fa-user"></i>
+
+            <!-- ================= DASHBOARD PAGE ================= -->
+            <div id="dashboardPage">
+
+                <!-- Dashboard Cards -->
+                <div class="dashboard-cards">
+                    <div class="card profile-info">
+                        <div class="card-header">
+                            <h3 class="card-title">Personal Information</h3>
+                            <div class="card-icon"><i class="fas fa-user"></i></div>
+                        </div>
+                        <div class="info-row">
+                            <strong>Full Name:</strong>
+                            <span id="fullName">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Gender:</strong>
+                            <span id="gender">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Employee ID:</strong>
+                            <span id="employeeId">Loading...</span>
                         </div>
                     </div>
-                    <div class="info-row">
-                        <strong>Full Name:</strong>
-                        <span id="fullName">Loading...</span>
+
+                    <div class="card employment">
+                        <div class="card-header">
+                            <h3 class="card-title">Employment Details</h3>
+                            <div class="card-icon"><i class="fas fa-id-badge"></i></div>
+                        </div>
+                        <div class="info-row">
+                            <strong>Department:</strong>
+                            <span id="department">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Job Title:</strong>
+                            <span id="jobTitle">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Job Category:</strong>
+                            <span id="jobCategory">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Team:</strong>
+                            <span id="team">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Hire Date:</strong>
+                            <span id="hireDate">Loading...</span>
+                        </div>
                     </div>
-                    <div class="info-row">
-                        <strong>Gender:</strong>
-                        <span id="gender">Loading...</span>
-                    </div>
-                    <div class="info-row">
-                        <strong>Employee ID:</strong>
-                        <span id="employeeId">Loading...</span>
+
+                    <div class="card contact">
+                        <div class="card-header">
+                            <h3 class="card-title">Contact Information</h3>
+                            <div class="card-icon"><i class="fas fa-address-card"></i></div>
+                        </div>
+                        <div class="info-row">
+                            <strong>Email:</strong>
+                            <span id="email">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Phone:</strong>
+                            <span id="phoneNumber">Loading...</span>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="card employment">
-                    <div class="card-header">
-                        <h3 class="card-title">Employment Details</h3>
-                        <div class="card-icon">
-                            <i class="fas fa-id-badge"></i>
-                        </div>
+
+                <!-- Leave Application Shortcuts -->
+                <h3 class="section-title">Apply for Leave</h3>
+
+                <div class="leave-types">
+                    <div class="leave-type-card annual" data-type="annual">
+                        <div class="leave-type-icon"><i class="fas fa-sun"></i></div>
+                        <h3>Annual Leave</h3>
+                        <p>Plan your vacations and personal time off</p>
                     </div>
-                    <div class="info-row">
-                        <strong>Department:</strong>
-                        <span id="department">Loading...</span>
+
+                    <div class="leave-type-card casual" data-type="casual">
+                        <div class="leave-type-icon"><i class="fas fa-coffee"></i></div>
+                        <h3>Casual Leave</h3>
+                        <p>Short-term leave for personal reasons</p>
                     </div>
-                    <div class="info-row">
-                        <strong>Job Title:</strong>
-                        <span id="jobTitle">Loading...</span>
+
+                    <div class="leave-type-card sick" data-type="sick">
+                        <div class="leave-type-icon"><i class="fas fa-heartbeat"></i></div>
+                        <h3>Sick Leave</h3>
+                        <p>Medical leave for health-related issues</p>
                     </div>
-                    <div class="info-row">
-                        <strong>Job Category:</strong>
-                        <span id="jobCategory">Loading...</span>
-                    </div>
-                    <div class="info-row">
-                        <strong>Team:</strong>
-                        <span id="team">Loading...</span>
-                    </div>
-                    <div class="info-row">
-                        <strong>Hire Date:</strong>
-                        <span id="hireDate">Loading...</span>
+
+                    <div class="leave-type-card maternity" data-type="maternity">
+                        <div class="leave-type-icon"><i class="fas fa-baby"></i></div>
+                        <h3>Maternity Leave</h3>
+                        <p>Leave for expecting mothers</p>
                     </div>
                 </div>
-                
-                <div class="card contact">
-                    <div class="card-header">
-                        <h3 class="card-title">Contact Information</h3>
-                        <div class="card-icon">
-                            <i class="fas fa-address-card"></i>
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <strong>Email:</strong>
-                        <span id="email">Loading...</span>
-                    </div>
-                    <div class="info-row">
-                        <strong>Phone:</strong>
-                        <span id="phoneNumber">Loading...</span>
+
+            </div>
+            <!-- ========= END DASHBOARD PAGE ========= -->
+
+
+            <!-- ============ LEAVE HISTORY PAGE ============ -->
+            <div id="leaveHistoryPage" class="hidden">
+                <h3 class="section-title">Leave History</h3>
+
+                <div id="leaveHistoryContainer" class="card" style="padding: 20px;">
+                    <div style="text-align:center; padding: 20px;">
+                        <div class="loading-spinner" style="margin:auto;"></div>
+                        <p style="margin-top:10px; color:var(--gray);">Loading your leave records...</p>
                     </div>
                 </div>
             </div>
-            
-            <!-- Leave Types -->
-            <h3 class="section-title">Apply for Leave</h3>
-            <div class="leave-types">
-                <div class="leave-type-card annual" data-type="annual">
-                    <div class="leave-type-icon">
-                        <i class="fas fa-sun"></i>
-                    </div>
-                    <h3>Annual Leave</h3>
-                    <p>Plan your vacations and personal time off</p>
-                </div>
-                
-                <div class="leave-type-card casual" data-type="casual">
-                    <div class="leave-type-icon">
-                        <i class="fas fa-coffee"></i>
-                    </div>
-                    <h3>Casual Leave</h3>
-                    <p>Short-term leave for personal reasons</p>
-                </div>
-                
-                <div class="leave-type-card sick" data-type="sick">
-                    <div class="leave-type-icon">
-                        <i class="fas fa-heartbeat"></i>
-                    </div>
-                    <h3>Sick Leave</h3>
-                    <p>Medical leave for health-related issues</p>
-                </div>
-                
-                <div class="leave-type-card maternity" data-type="maternity">
-                    <div class="leave-type-icon">
-                        <i class="fas fa-baby"></i>
-                    </div>
-                    <h3>Maternity Leave</h3>
-                    <p>Leave for expecting mothers</p>
-                </div>
-            </div>
+            <!-- ========= END LEAVE HISTORY PAGE ========= -->
+
         </main>
 
-        <!-- Leave History Tab Page -->
-        <div id="leaveHistoryPage" class="hidden">
-            <h3 class="section-title">Leave History</h3>
-
-            <div id="leaveHistoryContainer" class="card" style="padding: 20px;">
-                <div style="text-align:center; padding: 20px;">
-                    <div class="loading-spinner" style="margin:auto;"></div>
-                    <p style="margin-top:10px;color:var(--gray);">Loading your leave records...</p>
-                </div>
-            </div>
-        </div>
-    </div>
     
     <!-- Leave Application Modal -->
     <div class="modal" id="leaveModal">
