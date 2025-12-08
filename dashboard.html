@@ -578,7 +578,7 @@
         
         <!-- Main Content -->
         <main class="main-content">
-        <!-- Header -->
+            <!-- Header -->
             <div class="header">
                 <h2 id="headerTitle">Employee Dashboard</h2>
                 <div class="header-actions">
@@ -695,7 +695,6 @@
             </div>
             <!-- ========= END DASHBOARD PAGE ========= -->
 
-
             <!-- ============ LEAVE HISTORY PAGE ============ -->
             <div id="leaveHistoryPage" class="hidden">
                 <h3 class="section-title">Leave History</h3>
@@ -703,14 +702,14 @@
                 <div id="leaveHistoryContainer" class="card" style="padding: 20px;">
                     <div style="text-align:center; padding: 20px;">
                         <div class="loading-spinner" style="margin:auto;"></div>
-                        <p style="margin-top:10px; color:var(--gray);">Loading your leave records...</p>
+                        <p style="margin-top:10px; color:#95a5a6;">Loading your leave records...</p>
                     </div>
                 </div>
             </div>
             <!-- ========= END LEAVE HISTORY PAGE ========= -->
 
         </main>
-
+    </div>
     
     <!-- Leave Application Modal -->
     <div class="modal" id="leaveModal">
@@ -782,6 +781,7 @@
         
         // User data store
         let userData = null;
+        let leaveHistoryLoaded = false;
 
         // Show error message
         function showError(message) {
@@ -849,26 +849,25 @@
                 });
 
                 const data = await response.json();
-                leaveHistoryLoaded = true;
 
                 if (!data.success) {
-                    container.innerHTML = `<p style="padding:20px;color:var(--danger);">${data.message || 'Failed to load records'}</p>`;
+                    container.innerHTML = `<p style="padding:20px;color:#e74c3c;">${data.message || 'Failed to load records'}</p>`;
                     return;
                 }
 
-                if (!data.records.length) {
-                    container.innerHTML = `<p style="padding:20px;color:var(--gray);text-align:center">No leave history found.</p>`;
+                if (!data.records || data.records.length === 0) {
+                    container.innerHTML = `<p style="padding:20px;color:#95a5a6;text-align:center">No leave history found.</p>`;
                     return;
                 }
 
-                // build table
+                // Build table
                 const tableHTML = `
                 <table style="width:100%;border-collapse:collapse;font-size:14px;">
                     <thead>
                         <tr style="background:#f0f0f0;">
                             <th style="padding:8px;border:1px solid #ddd;">Leave Type</th>
-                            <th style="padding:8px;border:1px solid #ddd;">Start</th>
-                            <th style="padding:8px;border:1px solid #ddd;">End</th>
+                            <th style="padding:8px;border:1px solid #ddd;">Start Date</th>
+                            <th style="padding:8px;border:1px solid #ddd;">End Date</th>
                             <th style="padding:8px;border:1px solid #ddd;">Days</th>
                             <th style="padding:8px;border:1px solid #ddd;">Status</th>
                             <th style="padding:8px;border:1px solid #ddd;">Rejection Reason</th>
@@ -883,11 +882,11 @@
                                 <td style="padding:8px;border:1px solid #ddd;">${r.daysRequested || 'N/A'}</td>
                                 <td style="padding:8px;border:1px solid #ddd;">
                                     <span style="
-                                        background:${r.status === 'Approved' ? 'var(--success)'
-                                        : r.status === 'Rejected' ? 'var(--danger)'
-                                        : 'var(--warning)'};
+                                        background:${r.status === 'Approved' ? '#2ecc71'
+                                        : r.status === 'Rejected' ? '#e74c3c'
+                                        : '#f39c12'};
                                         color:white;padding:4px 8px;border-radius:6px;">
-                                        ${r.status}
+                                        ${r.status || 'Pending'}
                                     </span>
                                 </td>
                                 <td style="padding:8px;border:1px solid #ddd;">${r.rejectionReason || ''}</td>
@@ -900,8 +899,8 @@
                 container.innerHTML = tableHTML;
 
             } catch (error) {
-                container.innerHTML = `<p style="padding:20px;color:var(--danger);">Error loading leave history</p>`;
-                console.error(error);
+                container.innerHTML = `<p style="padding:20px;color:#e74c3c;">Error loading leave history. Please try again.</p>`;
+                console.error('Leave history error:', error);
             }
         }
 
@@ -935,7 +934,8 @@
             document.getElementById('phoneNumber').textContent = profile.phoneNumber || 'N/A';
 
             // Prefill contact field in leave form with phone or email
-            document.getElementById('contact').value = profile.phoneNumber || profile.email || '';
+            const contactField = document.getElementById('contact');
+            contactField.value = profile.phoneNumber || profile.email || '';
         }
 
         // Initialize dashboard
@@ -954,6 +954,38 @@
             }
         }
 
+        // Show/hide pages
+        function showTab(tab) {
+            // Remove active styling from sidebar
+            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+
+            // Hide all pages
+            document.getElementById('dashboardPage').classList.add('hidden');
+            document.getElementById('leaveHistoryPage').classList.add('hidden');
+
+            // Show target page
+            switch (tab) {
+                case 'dashboard':
+                    document.getElementById('dashboardPage').classList.remove('hidden');
+                    break;
+
+                case 'history':
+                    document.getElementById('leaveHistoryPage').classList.remove('hidden');
+                    if (!leaveHistoryLoaded) {
+                        loadLeaveHistory();
+                        leaveHistoryLoaded = true;
+                    }
+                    break;
+
+                default:
+                    alert("Coming soon!");
+                    break;
+            }
+
+            // Highlight active link
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+        }
+
         // Set minimum date to today
         const today = new Date().toISOString().split('T')[0];
         startDateInput.min = today;
@@ -970,6 +1002,14 @@
             if (startDateInput.value && endDateInput.value) {
                 const start = new Date(startDateInput.value);
                 const end = new Date(endDateInput.value);
+                
+                // Make sure end date is not before start date
+                if (end < start) {
+                    endDateInput.value = startDateInput.value;
+                    leaveDaysInput.value = 1;
+                    return;
+                }
+                
                 const diffTime = Math.abs(end - start);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
                 leaveDaysInput.value = diffDays;
@@ -1017,37 +1057,6 @@
             });
         });
         
-        // Handle form submission
-        leaveForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const leaveType = leaveTypeSelect.value;
-            const startDate = startDateInput.value;
-            const endDate = endDateInput.value;
-            const leaveDays = leaveDaysInput.value;
-            const reason = document.getElementById('reason').value;
-            const contact = document.getElementById('contact').value;
-            
-            // In production, send this to your backend
-            console.log('Leave Application Submitted:', {
-                leaveType,
-                startDate,
-                endDate,
-                leaveDays,
-                reason,
-                contact,
-                employeeId: userData?.employeeId
-            });
-            
-            // Show success message
-            alert(`Your ${leaveType} leave application for ${leaveDays} days has been submitted successfully!`);
-            
-            // Close modal and reset form
-            leaveModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            leaveForm.reset();
-        });
-        
         // Update modal title when leave type changes
         leaveTypeSelect.addEventListener('change', function() {
             const typeNames = {
@@ -1059,40 +1068,61 @@
             
             modalTitle.textContent = `Apply for ${typeNames[this.value]}`;
         });
-
-        // PAGE SWITCHING
-        const dashboardPage = document.querySelector('.main-content');
-        const leaveHistoryPage = document.getElementById('leaveHistoryPage');
-        let leaveHistoryLoaded = false;
-
-        // show tab & hide others
-        function showTab(tab) {
-            // Remove active styling from sidebar
-            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-
-            // Hide all subpages
-            leaveHistoryPage.classList.add('hidden');
-
-            // Show target page
-            switch (tab) {
-                case 'dashboard':
-                    dashboardPage.classList.remove('hidden');
-                    break;
-
-                case 'history':
-                    dashboardPage.classList.add('hidden');
-                    leaveHistoryPage.classList.remove('hidden');
-                    if (!leaveHistoryLoaded) loadLeaveHistory();
-                    break;
-
-                default:
-                    alert("Coming soon!");
-                    break;
+        
+        // Handle form submission
+        leaveForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const leaveType = leaveTypeSelect.value;
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+            const leaveDays = leaveDaysInput.value;
+            const reason = document.getElementById('reason').value;
+            const contact = document.getElementById('contact').value;
+            
+            try {
+                // In production, send this to your backend
+                const response = await fetch(`${API_BASE}/apply-leave`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        leaveType,
+                        startDate,
+                        endDate,
+                        leaveDays,
+                        reason,
+                        contact,
+                        employeeId: userData?.employeeId
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`Your ${leaveType} leave application for ${leaveDays} days has been submitted successfully!`);
+                    
+                    // Close modal and reset form
+                    leaveModal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                    leaveForm.reset();
+                    
+                    // Refresh leave history if we're on that page
+                    if (!document.getElementById('leaveHistoryPage').classList.contains('hidden')) {
+                        leaveHistoryLoaded = false;
+                        loadLeaveHistory();
+                    }
+                } else {
+                    alert(`Failed to submit leave application: ${result.message}`);
+                }
+                
+            } catch (error) {
+                console.error('Leave application error:', error);
+                alert('Failed to submit leave application. Please try again.');
             }
-
-            // highlight active link
-            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-        }
+        });
 
         // Bind sidebar clicks
         document.querySelectorAll('.nav-links a').forEach(link => {
