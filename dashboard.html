@@ -38,6 +38,38 @@
             min-height: 100vh;
         }
 
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
         /* Sidebar */
         .sidebar {
             width: 260px;
@@ -232,14 +264,9 @@
             font-size: 22px;
         }
 
-        .annual-leave .card-icon {
+        .profile-info .card-icon {
             background-color: rgba(52, 152, 219, 0.15);
             color: var(--secondary);
-        }
-
-        .queries .card-icon {
-            background-color: rgba(46, 204, 113, 0.15);
-            color: var(--success);
         }
 
         .employment .card-icon {
@@ -247,39 +274,33 @@
             color: #9b59b6;
         }
 
-        .leave-balance .card-icon {
-            background-color: rgba(241, 196, 15, 0.15);
-            color: #f1c40f;
+        .contact .card-icon {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: var(--success);
         }
 
-        .leave-days {
-            font-size: 36px;
-            font-weight: 700;
+        .info-row {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-row strong {
             color: var(--dark);
-            margin-bottom: 5px;
+            min-width: 120px;
+            font-size: 14px;
         }
 
-        .leave-days span {
-            font-size: 16px;
+        .info-row span {
             color: var(--gray);
-            font-weight: normal;
+            font-size: 14px;
         }
 
-        .progress-bar {
-            height: 10px;
-            background-color: #ecf0f1;
-            border-radius: 5px;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            border-radius: 5px;
-            background-color: var(--accent);
-        }
-
-        /* Leave Types */
+        /* Section Title */
         .section-title {
             font-size: 22px;
             margin-bottom: 20px;
@@ -287,6 +308,7 @@
             font-weight: 600;
         }
 
+        /* Leave Types */
         .leave-types {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -349,55 +371,6 @@
         .leave-type-card p {
             color: var(--gray);
             font-size: 14px;
-        }
-
-        /* Queries Section */
-        .queries-section {
-            background-color: white;
-            border-radius: var(--radius);
-            padding: 25px;
-            box-shadow: var(--shadow);
-            margin-bottom: 40px;
-        }
-
-        .query-item {
-            border-bottom: 1px solid #eee;
-            padding: 20px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .query-item:last-child {
-            border-bottom: none;
-        }
-
-        .query-info h4 {
-            font-size: 16px;
-            margin-bottom: 5px;
-            color: var(--dark);
-        }
-
-        .query-info p {
-            color: var(--gray);
-            font-size: 14px;
-        }
-
-        .query-status {
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .status-pending {
-            background-color: rgba(243, 156, 18, 0.15);
-            color: var(--warning);
-        }
-
-        .status-responded {
-            background-color: rgba(46, 204, 113, 0.15);
-            color: var(--success);
         }
 
         .btn {
@@ -495,6 +468,16 @@
             border-color: var(--secondary);
         }
 
+        .error-message {
+            background-color: #fee;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 15px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
         /* Responsive */
         @media (max-width: 992px) {
             .sidebar {
@@ -560,6 +543,11 @@
     </style>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -579,10 +567,10 @@
             
             <div class="user-profile">
                 <div class="user-info">
-                    <div class="user-avatar">JD</div>
+                    <div class="user-avatar" id="userAvatar">--</div>
                     <div class="user-details">
-                        <h4>John Doe</h4>
-                        <p>Senior Developer</p>
+                        <h4 id="sidebarUserName">Loading...</h4>
+                        <p id="sidebarJobTitle">Loading...</p>
                     </div>
                 </div>
             </div>
@@ -591,44 +579,42 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="header">
-                <h2>Employee Dashboard</h2>
+                <h2 id="headerTitle">Employee Dashboard</h2>
                 <div class="header-actions">
                     <div class="notification">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge">3</span>
+                        <span class="notification-badge">0</span>
                     </div>
                     <button class="btn btn-primary" id="applyLeaveBtn">
                         <i class="fas fa-plus-circle"></i> Apply for Leave
                     </button>
                 </div>
             </div>
+
+            <!-- Error Message (hidden by default) -->
+            <div class="error-message hidden" id="errorMessage"></div>
             
             <!-- Dashboard Cards -->
             <div class="dashboard-cards">
-                <div class="card annual-leave">
+                <div class="card profile-info">
                     <div class="card-header">
-                        <h3 class="card-title">Annual Leave Balance</h3>
+                        <h3 class="card-title">Personal Information</h3>
                         <div class="card-icon">
-                            <i class="fas fa-umbrella-beach"></i>
+                            <i class="fas fa-user"></i>
                         </div>
                     </div>
-                    <div class="leave-days">16<span> / 24 days</span></div>
-                    <p>Remaining days for this year</p>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 66%"></div>
+                    <div class="info-row">
+                        <strong>Full Name:</strong>
+                        <span id="fullName">Loading...</span>
                     </div>
-                </div>
-                
-                <div class="card queries">
-                    <div class="card-header">
-                        <h3 class="card-title">My Queries</h3>
-                        <div class="card-icon">
-                            <i class="fas fa-question-circle"></i>
-                        </div>
+                    <div class="info-row">
+                        <strong>Gender:</strong>
+                        <span id="gender">Loading...</span>
                     </div>
-                    <div class="leave-days">2</div>
-                    <p>Pending queries requiring your response</p>
-                    <button class="btn btn-accent" style="margin-top: 15px;">View Queries</button>
+                    <div class="info-row">
+                        <strong>Employee ID:</strong>
+                        <span id="employeeId">Loading...</span>
+                    </div>
                 </div>
                 
                 <div class="card employment">
@@ -638,10 +624,43 @@
                             <i class="fas fa-id-badge"></i>
                         </div>
                     </div>
-                    <p><strong>Department:</strong> Engineering</p>
-                    <p><strong>Position:</strong> Senior Developer</p>
-                    <p><strong>Employee ID:</strong> EMP-2023-045</p>
-                    <button class="btn btn-primary" style="margin-top: 15px;">View Details</button>
+                    <div class="info-row">
+                        <strong>Department:</strong>
+                        <span id="department">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <strong>Job Title:</strong>
+                        <span id="jobTitle">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <strong>Job Category:</strong>
+                        <span id="jobCategory">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <strong>Team:</strong>
+                        <span id="team">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <strong>Hire Date:</strong>
+                        <span id="hireDate">Loading...</span>
+                    </div>
+                </div>
+                
+                <div class="card contact">
+                    <div class="card-header">
+                        <h3 class="card-title">Contact Information</h3>
+                        <div class="card-icon">
+                            <i class="fas fa-address-card"></i>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <strong>Email:</strong>
+                        <span id="email">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <strong>Phone:</strong>
+                        <span id="phoneNumber">Loading...</span>
+                    </div>
                 </div>
             </div>
             
@@ -678,37 +697,6 @@
                     </div>
                     <h3>Maternity Leave</h3>
                     <p>Leave for expecting mothers</p>
-                </div>
-            </div>
-            
-            <!-- Recent Queries -->
-            <h3 class="section-title">Recent Queries</h3>
-            <div class="queries-section">
-                <div class="query-item">
-                    <div class="query-info">
-                        <h4>Leave Request Clarification</h4>
-                        <p>HR asked for additional documentation for your recent leave request</p>
-                        <p><small>Received: 2 days ago</small></p>
-                    </div>
-                    <div class="query-status status-pending">Pending Response</div>
-                </div>
-                
-                <div class="query-item">
-                    <div class="query-info">
-                        <h4>Tax Form Update</h4>
-                        <p>Please review and confirm your updated tax information</p>
-                        <p><small>Received: 5 days ago</small></p>
-                    </div>
-                    <div class="query-status status-responded">Responded</div>
-                </div>
-                
-                <div class="query-item">
-                    <div class="query-info">
-                        <h4>Performance Review Schedule</h4>
-                        <p>Your Q3 performance review has been scheduled for Oct 15</p>
-                        <p><small>Received: 1 week ago</small></p>
-                    </div>
-                    <div class="query-status status-responded">Responded</div>
                 </div>
             </div>
         </main>
@@ -766,7 +754,11 @@
     </div>
 
     <script>
+        const API_BASE = 'https://your-cloudflare-worker.workers.dev';
+        
         // DOM Elements
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const errorMessage = document.getElementById('errorMessage');
         const applyLeaveBtn = document.getElementById('applyLeaveBtn');
         const closeModalBtn = document.getElementById('closeModal');
         const leaveModal = document.getElementById('leaveModal');
@@ -778,6 +770,112 @@
         const endDateInput = document.getElementById('endDate');
         const leaveTypeCards = document.querySelectorAll('.leave-type-card');
         
+        // User data store
+        let userData = null;
+
+        // Show error message
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+            setTimeout(() => {
+                errorMessage.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Get initials from name
+        function getInitials(name) {
+            if (!name) return '--';
+            const parts = name.trim().split(' ');
+            if (parts.length >= 2) {
+                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            }
+            return name.substring(0, 2).toUpperCase();
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+
+        // Fetch dashboard data
+        async function fetchDashboardData() {
+            try {
+                const response = await fetch(`${API_BASE}/dashboard-data`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Failed to fetch dashboard data');
+                }
+
+                return data.profile;
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+                throw error;
+            }
+        }
+
+        // Populate dashboard with data
+        function populateDashboard(profile) {
+            userData = profile;
+
+            // Header
+            document.getElementById('headerTitle').textContent = `Welcome back, ${profile.firstName || profile.fullName}!`;
+
+            // Sidebar
+            const initials = getInitials(profile.fullName || profile.firstName);
+            document.getElementById('userAvatar').textContent = initials;
+            document.getElementById('sidebarUserName').textContent = profile.firstName || profile.fullName || 'User';
+            document.getElementById('sidebarJobTitle').textContent = profile.jobTitle || 'Employee';
+
+            // Personal Information Card
+            document.getElementById('fullName').textContent = profile.fullName || 'N/A';
+            document.getElementById('gender').textContent = profile.gender || 'N/A';
+            document.getElementById('employeeId').textContent = profile.employeeId || 'N/A';
+
+            // Employment Details Card
+            document.getElementById('department').textContent = profile.department || 'N/A';
+            document.getElementById('jobTitle').textContent = profile.jobTitle || 'N/A';
+            document.getElementById('jobCategory').textContent = profile.jobCategory || 'N/A';
+            document.getElementById('team').textContent = profile.team || 'N/A';
+            document.getElementById('hireDate').textContent = formatDate(profile.hireDate);
+
+            // Contact Information Card
+            document.getElementById('email').textContent = profile.email || 'N/A';
+            document.getElementById('phoneNumber').textContent = profile.phoneNumber || 'N/A';
+
+            // Prefill contact field in leave form with phone or email
+            document.getElementById('contact').value = profile.phoneNumber || profile.email || '';
+        }
+
+        // Initialize dashboard
+        async function initDashboard() {
+            try {
+                loadingOverlay.classList.remove('hidden');
+                
+                const profile = await fetchDashboardData();
+                populateDashboard(profile);
+                
+            } catch (error) {
+                showError(error.message || 'Failed to load dashboard data. Please try logging in again.');
+                console.error('Dashboard initialization error:', error);
+            } finally {
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+
         // Set minimum date to today
         const today = new Date().toISOString().split('T')[0];
         startDateInput.min = today;
@@ -786,6 +884,7 @@
         // Update end date min when start date changes
         startDateInput.addEventListener('change', function() {
             endDateInput.min = this.value;
+            calculateDays();
         });
         
         // Calculate days between dates
@@ -799,7 +898,6 @@
             }
         }
         
-        startDateInput.addEventListener('change', calculateDays);
         endDateInput.addEventListener('change', calculateDays);
         
         // Open modal when Apply for Leave button is clicked
@@ -828,7 +926,6 @@
                 const type = card.getAttribute('data-type');
                 leaveTypeSelect.value = type;
                 
-                // Update modal title based on selected type
                 const typeNames = {
                     'annual': 'Annual Leave',
                     'casual': 'Casual Leave',
@@ -846,43 +943,31 @@
         leaveForm.addEventListener('submit', (e) => {
             e.preventDefault();
             
-            // Get form values
             const leaveType = leaveTypeSelect.value;
             const startDate = startDateInput.value;
             const endDate = endDateInput.value;
             const leaveDays = leaveDaysInput.value;
             const reason = document.getElementById('reason').value;
+            const contact = document.getElementById('contact').value;
             
-            // In a real app, this would be sent to a backend
+            // In production, send this to your backend
             console.log('Leave Application Submitted:', {
                 leaveType,
                 startDate,
                 endDate,
                 leaveDays,
-                reason
+                reason,
+                contact,
+                employeeId: userData?.employeeId
             });
             
             // Show success message
-            alert(`Your ${leaveType} application for ${leaveDays} days has been submitted successfully!`);
+            alert(`Your ${leaveType} leave application for ${leaveDays} days has been submitted successfully!`);
             
             // Close modal and reset form
             leaveModal.style.display = 'none';
             document.body.style.overflow = 'auto';
             leaveForm.reset();
-            
-            // Update the annual leave balance (demo only)
-            if (leaveType === 'annual') {
-                const currentBalance = parseInt(document.querySelector('.leave-days').textContent);
-                const newBalance = currentBalance - parseInt(leaveDays);
-                
-                if (newBalance >= 0) {
-                    document.querySelector('.leave-days').textContent = newBalance + ' / 24 days';
-                    document.querySelector('.progress-fill').style.width = `${(newBalance/24)*100}%`;
-                    
-                    // Add to leave history (in a real app)
-                    console.log(`Annual leave balance updated to ${newBalance} days`);
-                }
-            }
         });
         
         // Update modal title when leave type changes
@@ -897,9 +982,11 @@
             modalTitle.textContent = `Apply for ${typeNames[this.value]}`;
         });
         
-        // Demo data for dynamic interactions
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
-            // Set default dates
+            initDashboard();
+            
+            // Set default dates (7 days from now for 3 days)
             const nextWeek = new Date();
             nextWeek.setDate(nextWeek.getDate() + 7);
             const nextWeekPlusTwo = new Date(nextWeek);
@@ -907,14 +994,7 @@
             
             startDateInput.valueAsDate = nextWeek;
             endDateInput.valueAsDate = nextWeekPlusTwo;
-            
-            // Calculate initial days
             calculateDays();
-            
-            // Simulate notification click
-            document.querySelector('.notification').addEventListener('click', function() {
-                alert('You have 3 notifications: 1 new leave approval, 1 query response, 1 policy update');
-            });
         });
     </script>
 </body>
