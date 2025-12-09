@@ -288,10 +288,17 @@
         /* Cards Grid */
         .cards-wrapper {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 24px;
-            margin-bottom: 32px;
+            align-items: stretch;
         }
+        
+        .card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
 
         .cards-column {
             display: flex;
@@ -979,71 +986,73 @@
 
                 <!-- Dashboard Cards -->
                 <div class="cards-wrapper">
-                    <div class="cards-column">
-                        <div class="card profile-info">
-                            <div class="card-header">
-                                <h3 class="card-title">Personal Information</h3>
-                                <div class="card-icon"><i class="fas fa-user"></i></div>
-                            </div>
-                            <div class="info-row">
-                                <strong>Full Name</strong>
-                                <span id="fullName">Loading...</span>
-                            </div>
-                            <div class="info-row">
-                                <strong>Gender</strong>
-                                <span id="gender">Loading...</span>
-                            </div>
-                            <div class="info-row">
-                                <strong>Employee ID</strong>
-                                <span id="employeeId">Loading...</span>
-                            </div>
+    
+                    <!-- PERSONAL INFORMATION -->
+                    <div class="card profile-info">
+                        <div class="card-header">
+                            <h3 class="card-title">Personal Information</h3>
+                            <div class="card-icon"><i class="fas fa-user"></i></div>
                         </div>
-
-                        <div class="card employment">
-                            <div class="card-header">
-                                <h3 class="card-title">Employment Details</h3>
-                                <div class="card-icon"><i class="fas fa-id-badge"></i></div>
-                            </div>
-                            <div class="info-row">
-                                <strong>Department</strong>
-                                <span id="department">Loading...</span>
-                            </div>
-                            <div class="info-row">
-                                <strong>Job Title</strong>
-                                <span id="jobTitle">Loading...</span>
-                            </div>
-                            <div class="info-row">
-                                <strong>Job Category</strong>
-                                <span id="jobCategory">Loading...</span>
-                            </div>
-                            <div class="info-row">
-                                <strong>Team</strong>
-                                <span id="team">Loading...</span>
-                            </div>
-                            <div class="info-row">
-                                <strong>Hire Date</strong>
-                                <span id="hireDate">Loading...</span>
-                            </div>
+                        <div class="info-row">
+                            <strong>Full Name</strong>
+                            <span id="fullName">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Gender</strong>
+                            <span id="gender">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Employee ID</strong>
+                            <span id="employeeId">Loading...</span>
                         </div>
                     </div>
-
-                    <div class="cards-column">
-                        <div class="card contact">
-                            <div class="card-header">
-                                <h3 class="card-title">Contact Information</h3>
-                                <div class="card-icon"><i class="fas fa-address-card"></i></div>
-                            </div>
-                            <div class="info-row">
-                                <strong>Email Address</strong>
-                                <span id="email">Loading...</span>
-                            </div>
-                            <div class="info-row">
-                                <strong>Phone Number</strong>
-                                <span id="phoneNumber">Loading...</span>
-                            </div>
+                
+                    <!-- CONTACT INFORMATION -->
+                    <div class="card contact">
+                        <div class="card-header">
+                            <h3 class="card-title">Contact Information</h3>
+                            <div class="card-icon"><i class="fas fa-address-card"></i></div>
+                        </div>
+                        <div class="info-row">
+                            <strong>Email Address</strong>
+                            <span id="email">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Phone Number</strong>
+                            <span id="phoneNumber">Loading...</span>
                         </div>
                     </div>
+                
+                    <!-- EMPLOYMENT DETAILS -->
+                    <div class="card employment">
+                        <div class="card-header">
+                            <h3 class="card-title">Employment Details</h3>
+                            <div class="card-icon"><i class="fas fa-id-badge"></i></div>
+                        </div>
+                        <div class="info-row">
+                            <strong>Department</strong>
+                            <span id="department">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Job Title</strong>
+                            <span id="jobTitle">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Job Category</strong>
+                            <span id="jobCategory">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Team</strong>
+                            <span id="team">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Hire Date</strong>
+                            <span id="hireDate">Loading...</span>
+                        </div>
+                    </div>
+                
                 </div>
+
 
                 <!-- Leave Application Shortcuts -->
                 <h3 class="section-title">Quick Leave Applications</h3>
