@@ -923,8 +923,70 @@
         .cards-wrapper {
             align-items: stretch;
         }
+        .calendar-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 100%;
+        }
         
-
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-nav-btn {
+            padding: 8px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            border: 1px solid #ddd;
+        }
+        
+        .calendar-cell {
+            border: 1px solid #e0e0e0;
+            height: 100px;
+            padding: 5px;
+            position: relative;
+            font-size: 14px;
+        }
+        
+        .calendar-cell-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .leave-event {
+            background: #2ecc71;
+            color: white;
+            padding: 3px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: block;
+            margin-top: 3px;
+            cursor: pointer;
+        }
+        
+        .leave-tooltip {
+            position: absolute;
+            background: black;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            display: none;
+            z-index: 50;
+            white-space: nowrap;
+        }      
     </style>
 </head>
 <body>
@@ -1101,6 +1163,33 @@
                 </div>
             </div>
             <!-- ========= END LEAVE HISTORY PAGE ========= -->
+            <!-- ============ LEAVE CALENDAR PAGE ============ -->
+            <div id="leaveCalendarPage" class="hidden">
+            
+                <h3 class="section-title">Leave Calendar</h3>
+            
+                <!-- Leave Balance -->
+                <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 10px;">Annual Leave Balance</h3>
+                    <p style="font-size: 16px;">
+                        You have <strong id="remainingLeaveDays">Loading...</strong> days remaining out of 24.
+                    </p>
+                </div>
+            
+                <!-- Calendar Container -->
+                <div id="calendarWrapper" class="calendar-wrapper">
+                    <div class="calendar-header">
+                        <button id="prevMonthBtn" class="calendar-nav-btn">&lt;</button>
+                        <h2 id="calendarMonthLabel">Month Year</h2>
+                        <button id="nextMonthBtn" class="calendar-nav-btn">&gt;</button>
+                    </div>
+            
+                    <div id="calendarGrid" class="calendar-grid"></div>
+                </div>
+            
+            </div>
+            <!-- ========= END LEAVE CALENDAR PAGE ========= -->
+
 
         </main>
     </div>
@@ -1348,6 +1437,144 @@
                 loadingOverlay.classList.add('hidden');
             }
         }
+        /************************************
+         * LEAVE CALENDAR FRONTEND LOGIC
+         ************************************/
+        
+        const leaveCalendarPage = document.getElementById('leaveCalendarPage');
+        const calendarGrid = document.getElementById('calendarGrid');
+        const calendarMonthLabel = document.getElementById('calendarMonthLabel');
+        const remainingLeaveDaysLabel = document.getElementById('remainingLeaveDays');
+        
+        let currentCalendarDate = new Date();
+        let allLeaveRecords = [];       // Will hold staff leave for the entire organization
+        let userUsedDays = 0;           // For leave balance
+        
+        async function loadLeaveCalendarData() {
+            try {
+                const response = await fetch(`${API_BASE}/leave-calendar`, {
+                    method: "GET",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" }
+                });
+        
+                const data = await response.json();
+                if (!data.success) {
+                    showError("Failed to fetch calendar data.");
+                    return;
+                }
+        
+                allLeaveRecords = data.records || [];
+                userUsedDays = data.userUsedDays || 0;
+        
+                remainingLeaveDaysLabel.textContent = 24 - userUsedDays;
+        
+                renderCalendar();
+        
+            } catch (err) {
+                console.error(err);
+                showError("Error loading leave calendar.");
+            }
+        }
+        
+        
+        /************************************
+         * CALENDAR RENDERING
+         ************************************/
+        function renderCalendar() {
+            calendarGrid.innerHTML = "";
+        
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+        
+            const monthName = currentCalendarDate.toLocaleString("en-US", { month: "long" });
+            calendarMonthLabel.textContent = `${monthName} ${year}`;
+        
+            const firstDay = new Date(year, month, 1);
+            const startingDay = firstDay.getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+            // Empty cells before month starts
+            for (let i = 0; i < startingDay; i++) {
+                const emptyCell = document.createElement("div");
+                emptyCell.classList.add("calendar-cell");
+                calendarGrid.appendChild(emptyCell);
+            }
+        
+            // Render days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cell = document.createElement("div");
+                cell.classList.add("calendar-cell");
+        
+                const header = document.createElement("div");
+                header.classList.add("calendar-cell-header");
+                header.textContent = day;
+                cell.appendChild(header);
+        
+                const thisDate = new Date(year, month, day).toISOString().split("T")[0];
+        
+                // Find leave events for this date
+                const events = allLeaveRecords.filter(event => {
+                    return thisDate >= event.startDate && thisDate <= event.endDate;
+                });
+        
+                // Create event elements
+                events.forEach(ev => {
+                    const eventEl = document.createElement("span");
+                    eventEl.classList.add("leave-event");
+        
+                    eventEl.textContent = ev.staffInitials;
+        
+                    // Tooltip
+                    const tooltip = document.createElement("div");
+                    tooltip.classList.add("leave-tooltip");
+                    tooltip.textContent = `${ev.staffName} (${ev.leaveType})`;
+        
+                    eventEl.addEventListener("mouseenter", () => {
+                        tooltip.style.display = "block";
+                    });
+        
+                    eventEl.addEventListener("mouseleave", () => {
+                        tooltip.style.display = "none";
+                    });
+        
+                    cell.appendChild(eventEl);
+                    cell.appendChild(tooltip);
+                });
+        
+                calendarGrid.appendChild(cell);
+            }
+        }
+        
+        
+        /************************************
+         * MONTH NAVIGATION
+         ************************************/
+        document.getElementById("prevMonthBtn").addEventListener("click", () => {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+            renderCalendar();
+        });
+        
+        document.getElementById("nextMonthBtn").addEventListener("click", () => {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+            renderCalendar();
+        });
+        
+        
+        /************************************
+         * SHOW TAB HANDLER EXTENSION
+         ************************************/
+        const originalShowTab = showTab;
+        
+        showTab = function (tab) {
+            originalShowTab(tab);
+        
+            if (tab === "calendar") {
+                loadLeaveCalendarData();
+                leaveCalendarPage.classList.remove("hidden");
+            }
+        };
+
 
         // Show/hide pages
         function showTab(tab) {
