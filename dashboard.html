@@ -1247,532 +1247,466 @@
     </div>
 
     <script>
-        const API_BASE = 'https://asiukpohr.nocodeinfolab.workers.dev';
-        
-        // DOM Elements
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const errorMessage = document.getElementById('errorMessage');
-        const applyLeaveBtn = document.getElementById('applyLeaveBtn');
-        const closeModalBtn = document.getElementById('closeModal');
-        const leaveModal = document.getElementById('leaveModal');
-        const leaveForm = document.getElementById('leaveForm');
-        const leaveTypeSelect = document.getElementById('leaveType');
-        const modalTitle = document.getElementById('modalTitle');
-        const leaveDaysInput = document.getElementById('leaveDays');
-        const startDateInput = document.getElementById('startDate');
-        const endDateInput = document.getElementById('endDate');
-        const leaveTypeCards = document.querySelectorAll('.leave-type-card');
-        
-        // User data store
-        let userData = null;
-        let leaveHistoryLoaded = false;
-
-        // Show error message
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.classList.remove('hidden');
-            setTimeout(() => {
-                errorMessage.classList.add('hidden');
-            }, 5000);
-        }
-
-        // Get initials from name
-        function getInitials(name) {
-            if (!name) return '--';
-            const parts = name.trim().split(' ');
-            if (parts.length >= 2) {
-                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-            }
-            return name.substring(0, 2).toUpperCase();
-        }
-
-        // Format date
-        function formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+    /* =========================================================
+       GLOBAL CONFIG
+    ========================================================= */
+    const API_BASE = "https://asiukpohr.nocodeinfolab.workers.dev";
+    
+    /* =========================================================
+       DOM ELEMENTS
+    ========================================================= */
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const errorMessage = document.getElementById("errorMessage");
+    
+    const dashboardPage = document.getElementById("dashboardPage");
+    const leaveHistoryPage = document.getElementById("leaveHistoryPage");
+    const leaveCalendarPage = document.getElementById("leaveCalendarPage");
+    
+    const applyLeaveBtn = document.getElementById("applyLeaveBtn");
+    const leaveModal = document.getElementById("leaveModal");
+    const closeModalBtn = document.getElementById("closeModal");
+    
+    const leaveForm = document.getElementById("leaveForm");
+    const leaveTypeSelect = document.getElementById("leaveType");
+    
+    const leaveDaysInput = document.getElementById("leaveDays");
+    const startDateInput = document.getElementById("startDate");
+    const endDateInput = document.getElementById("endDate");
+    
+    const remainingLeaveDaysLabel = document.getElementById("remainingLeaveDays");
+    
+    const calendarGrid = document.getElementById("calendarGrid");
+    const calendarMonthLabel = document.getElementById("calendarMonthLabel");
+    
+    let userData = null;
+    let leaveHistoryLoaded = false;
+    
+    /* =========================================================
+       UTILITY HELPERS
+    ========================================================= */
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.classList.remove("hidden");
+    
+        setTimeout(() => errorMessage.classList.add("hidden"), 5000);
+    }
+    
+    function getInitials(name) {
+        if (!name) return "--";
+        const p = name.trim().split(" ");
+        if (p.length >= 2) return (p[0][0] + p[p.length - 1][0]).toUpperCase();
+        return name.substring(0, 2).toUpperCase();
+    }
+    
+    function formatDate(dateString) {
+        if (!dateString) return "N/A";
+        const d = new Date(dateString);
+        return d.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        });
+    }
+    
+    /* =========================================================
+       DASHBOARD DATA FETCHER
+    ========================================================= */
+    async function fetchDashboardData() {
+        try {
+            const response = await fetch(`${API_BASE}/dashboard-data`, {
+                method: "GET",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" }
             });
+    
+            const data = await response.json();
+            if (!response.ok || !data.success) throw new Error(data.message);
+    
+            return data.profile;
+        } catch (err) {
+            showError("Failed to load dashboard.");
+            throw err;
         }
-
-        // Fetch dashboard data
-        async function fetchDashboardData() {
-            try {
-                const response = await fetch(`${API_BASE}/dashboard-data`, {
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                const data = await response.json();
-
-                if (!response.ok || !data.success) {
-                    throw new Error(data.message || 'Failed to fetch dashboard data');
-                }
-
-                return data.profile;
-            } catch (error) {
-                console.error('Error fetching dashboard data:', error);
-                throw error;
-            }
+    }
+    
+    /* =========================================================
+       POPULATE DASHBOARD
+    ========================================================= */
+    function populateDashboard(profile) {
+        userData = profile;
+    
+        document.getElementById("headerTitle").textContent = `Welcome back, ${profile.firstName || profile.fullName}!`;
+        document.getElementById("userAvatar").textContent = getInitials(profile.fullName);
+        document.getElementById("sidebarUserName").textContent = profile.firstName || profile.fullName;
+        document.getElementById("sidebarJobTitle").textContent = profile.jobTitle || "Employee";
+    
+        document.getElementById("fullName").textContent = profile.fullName;
+        document.getElementById("gender").textContent = profile.gender;
+        document.getElementById("employeeId").textContent = profile.employeeId;
+        document.getElementById("department").textContent = profile.department;
+        document.getElementById("jobTitle").textContent = profile.jobTitle;
+        document.getElementById("jobCategory").textContent = profile.jobCategory;
+        document.getElementById("team").textContent = profile.team;
+        document.getElementById("hireDate").textContent = formatDate(profile.hireDate);
+        document.getElementById("email").textContent = profile.email;
+        document.getElementById("phoneNumber").textContent = profile.phoneNumber;
+    
+        // Autofill contact field for leave form
+        document.getElementById("contact").value =
+            profile.phoneNumber || profile.email || "";
+    }
+    
+    /* =========================================================
+       INIT DASHBOARD
+    ========================================================= */
+    async function initDashboard() {
+        loadingOverlay.classList.remove("hidden");
+    
+        try {
+            const profile = await fetchDashboardData();
+            populateDashboard(profile);
+        } catch (err) {
+            console.error(err);
         }
-
-        // Load Leave History
-        async function loadLeaveHistory() {
-            const container = document.getElementById('leaveHistoryContainer');
-
-            try {
-                const response = await fetch(`${API_BASE}/leave-history`, {
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                const data = await response.json();
-
-                if (!data.success) {
-                    container.innerHTML = `<p style="padding:20px;color:#e74c3c;">${data.message || 'Failed to load records'}</p>`;
-                    return;
-                }
-
-                if (!data.records || data.records.length === 0) {
-                    container.innerHTML = `<p style="padding:20px;color:#95a5a6;text-align:center">No leave history found.</p>`;
-                    return;
-                }
-
-                // Build table
-                const tableHTML = `
-                <table style="width:100%;border-collapse:collapse;font-size:14px;">
-                    <thead>
-                        <tr style="background:#f0f0f0;">
-                            <th style="padding:8px;border:1px solid #ddd;">Leave Type</th>
-                            <th style="padding:8px;border:1px solid #ddd;">Start Date</th>
-                            <th style="padding:8px;border:1px solid #ddd;">End Date</th>
-                            <th style="padding:8px;border:1px solid #ddd;">Days</th>
-                            <th style="padding:8px;border:1px solid #ddd;">Status</th>
-                            <th style="padding:8px;border:1px solid #ddd;">Rejection Reason</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${data.records.map(r => `
-                            <tr>
-                                <td style="padding:8px;border:1px solid #ddd;">${r.leaveType || 'N/A'}</td>
-                                <td style="padding:8px;border:1px solid #ddd;">${formatDate(r.startDate)}</td>
-                                <td style="padding:8px;border:1px solid #ddd;">${formatDate(r.endDate)}</td>
-                                <td style="padding:8px;border:1px solid #ddd;">${r.daysRequested || 'N/A'}</td>
-                                <td style="padding:8px;border:1px solid #ddd;">
-                                    <span style="
-                                        background:${r.status === 'Approved' ? '#2ecc71'
-                                        : r.status === 'Rejected' ? '#e74c3c'
-                                        : '#f39c12'};
-                                        color:white;padding:4px 8px;border-radius:6px;">
-                                        ${r.status || 'Pending'}
-                                    </span>
-                                </td>
-                                <td style="padding:8px;border:1px solid #ddd;">${r.rejectionReason || ''}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                `;
-
-                container.innerHTML = tableHTML;
-
-            } catch (error) {
-                container.innerHTML = `<p style="padding:20px;color:#e74c3c;">Error loading leave history. Please try again.</p>`;
-                console.error('Leave history error:', error);
+    
+        loadingOverlay.classList.add("hidden");
+    }
+    
+    /* =========================================================
+       LOAD LEAVE HISTORY
+    ========================================================= */
+    async function loadLeaveHistory() {
+        const container = document.getElementById("leaveHistoryContainer");
+    
+        container.innerHTML = `
+            <div style="text-align:center;padding:20px;">
+                <div class="loading-spinner" style="margin:auto;"></div>
+                <p style="margin-top:10px;color:#95a5a6;">Loading your leave records...</p>
+            </div>
+        `;
+    
+        try {
+            const res = await fetch(`${API_BASE}/leave-history`, {
+                method: "GET",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" }
+            });
+    
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message);
+    
+            if (!data.records.length) {
+                container.innerHTML = `<p style="text-align:center;color:#95a5a6;">No leave history yet.</p>`;
+                return;
             }
+    
+            container.innerHTML = `
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                <thead>
+                    <tr style="background:#f0f0f0;">
+                        <th style="padding:8px;border:1px solid #ddd;">Leave Type</th>
+                        <th style="padding:8px;border:1px solid #ddd;">Start</th>
+                        <th style="padding:8px;border:1px solid #ddd;">End</th>
+                        <th style="padding:8px;border:1px solid #ddd;">Days</th>
+                        <th style="padding:8px;border:1px solid #ddd;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.records.map(r => `
+                        <tr>
+                            <td style="padding:8px;border:1px solid #ddd;">${r.leaveType}</td>
+                            <td style="padding:8px;border:1px solid #ddd;">${formatDate(r.startDate)}</td>
+                            <td style="padding:8px;border:1px solid #ddd;">${formatDate(r.endDate)}</td>
+                            <td style="padding:8px;border:1px solid #ddd;">${r.daysRequested}</td>
+                            <td style="padding:8px;border:1px solid #ddd;">
+                                <span style="padding:4px 8px;border-radius:6px;color:white;background:${
+                                    r.status === "Approved"
+                                        ? "#2ecc71"
+                                        : r.status === "Rejected"
+                                        ? "#e74c3c"
+                                        : "#f39c12"
+                                };">${r.status}</span>
+                            </td>
+                        </tr>`).join("")}
+                </tbody>
+            </table>`;
+        } catch (err) {
+            console.error(err);
+            container.innerHTML = `<p style="color:#e74c3c;">Unable to load leave history.</p>`;
         }
-
-        // Populate dashboard with data
-        function populateDashboard(profile) {
-            userData = profile;
-
-            // Header
-            document.getElementById('headerTitle').textContent = `Welcome back, ${profile.firstName || profile.fullName}!`;
-
-            // Sidebar
-            const initials = getInitials(profile.fullName || profile.firstName);
-            document.getElementById('userAvatar').textContent = initials;
-            document.getElementById('sidebarUserName').textContent = profile.firstName || profile.fullName || 'User';
-            document.getElementById('sidebarJobTitle').textContent = profile.jobTitle || 'Employee';
-
-            // Personal Information Card
-            document.getElementById('fullName').textContent = profile.fullName || 'N/A';
-            document.getElementById('gender').textContent = profile.gender || 'N/A';
-            document.getElementById('employeeId').textContent = profile.employeeId || 'N/A';
-
-            // Employment Details Card
-            document.getElementById('department').textContent = profile.department || 'N/A';
-            document.getElementById('jobTitle').textContent = profile.jobTitle || 'N/A';
-            document.getElementById('jobCategory').textContent = profile.jobCategory || 'N/A';
-            document.getElementById('team').textContent = profile.team || 'N/A';
-            document.getElementById('hireDate').textContent = formatDate(profile.hireDate);
-
-            // Contact Information Card
-            document.getElementById('email').textContent = profile.email || 'N/A';
-            document.getElementById('phoneNumber').textContent = profile.phoneNumber || 'N/A';
-
-            // Prefill contact field in leave form with phone or email
-            const contactField = document.getElementById('contact');
-            contactField.value = profile.phoneNumber || profile.email || '';
+    }
+    
+    /* =========================================================
+       LEAVE CALENDAR — FRONTEND MONTH FILTERING
+    ========================================================= */
+    let fullYearLeaveRecords = [];
+    let currentCalendarDate = new Date();
+    
+    function daysInMonth(year, month) {
+        return new Date(year, month + 1, 0).getDate();
+    }
+    
+    function filterByMonth(records, year, month) {
+        const ranges = [];
+    
+        records.forEach(r => {
+            const s = new Date(r.startDate);
+            const e = new Date(r.endDate);
+    
+            const first = new Date(year, month, 1);
+            const last = new Date(year, month, daysInMonth(year, month));
+    
+            const overlaps =
+                (s <= last && e >= first);
+    
+            if (overlaps) ranges.push(r);
+        });
+    
+        return ranges;
+    }
+    
+    async function loadLeaveCalendarYear() {
+        try {
+            const yr = new Date().getFullYear();
+            const res = await fetch(`${API_BASE}/leave-calendar?year=${yr}`, {
+                method: "GET",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" }
+            });
+    
+            const data = await res.json();
+            if (!data.success) throw new Error("Failed calendar data.");
+    
+            fullYearLeaveRecords = data.records;
+    
+            const totalAnnual = fullYearLeaveRecords
+                .filter(r => r.leaveType === "Annual" && r.employeeId == userData.employeeId)
+                .reduce((sum, r) => sum + (r.daysRequested || 0), 0);
+    
+            remainingLeaveDaysLabel.textContent = 24 - totalAnnual;
+    
+            renderCalendar();
+        } catch (err) {
+            showError("Unable to load leave calendar.");
+            console.error(err);
         }
-
-        // Initialize dashboard
-        async function initDashboard() {
-            try {
-                loadingOverlay.classList.remove('hidden');
-                
-                const profile = await fetchDashboardData();
-                populateDashboard(profile);
-                
-            } catch (error) {
-                showError(error.message || 'Failed to load dashboard data. Please try logging in again.');
-                console.error('Dashboard initialization error:', error);
-            } finally {
-                loadingOverlay.classList.add('hidden');
-            }
+    }
+    
+    /* =========================================================
+       CALENDAR RENDERER
+    ========================================================= */
+    function renderCalendar() {
+        calendarGrid.innerHTML = "";
+    
+        const y = currentCalendarDate.getFullYear();
+        const m = currentCalendarDate.getMonth();
+    
+        calendarMonthLabel.textContent =
+            currentCalendarDate.toLocaleString("en-US", { month: "long", year: "numeric" });
+    
+        const firstDay = new Date(y, m, 1).getDay();
+        const totalDays = daysInMonth(y, m);
+    
+        for (let i = 0; i < firstDay; i++) {
+            const empty = document.createElement("div");
+            empty.classList.add("calendar-cell");
+            calendarGrid.appendChild(empty);
         }
-        /************************************
-         * LEAVE CALENDAR FRONTEND LOGIC
-         ************************************/
-        
-        const leaveCalendarPage = document.getElementById('leaveCalendarPage');
-        const calendarGrid = document.getElementById('calendarGrid');
-        const calendarMonthLabel = document.getElementById('calendarMonthLabel');
-        const remainingLeaveDaysLabel = document.getElementById('remainingLeaveDays');
-        
-        let currentCalendarDate = new Date();
-        let allLeaveRecords = [];       // Will hold staff leave for the entire organization
-        let userUsedDays = 0;           // For leave balance
-        
-        async function loadLeaveCalendarData() {
-            try {
-                const response = await fetch(`${API_BASE}/leave-calendar`, {
-                    method: "GET",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" }
-                });
-        
-                const data = await response.json();
-                if (!data.success) {
-                    showError("Failed to fetch calendar data.");
-                    return;
-                }
-        
-                // Store the raw yearly records
-                allLeaveRecords = data.records || [];
-        
-                // Update the leave balance display
-                const ANNUAL_ALLOWANCE = 24;
-                const used = data.userAnnualUsedDays || 0;
-                remainingLeaveDaysLabel.textContent = ANNUAL_ALLOWANCE - used;
-        
-                // Render the currently selected month
-                renderCalendar();
-        
-            } catch (err) {
-                console.error(err);
-                showError("Error loading leave calendar.");
-            }
-        }        
-        
-        /************************************
-         * CALENDAR RENDERING
-         ************************************/
-        function renderCalendar() {
-            calendarGrid.innerHTML = "";
-        
-            const monthName = currentCalendarDate.toLocaleString("en-US", { month: "long" });
-            calendarMonthLabel.textContent = `${monthName} ${year}`;
-        
-            const firstDay = new Date(year, month, 1);
-            const startingDay = firstDay.getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-        
-            // Empty cells before month starts
-            for (let i = 0; i < startingDay; i++) {
-                const emptyCell = document.createElement("div");
-                emptyCell.classList.add("calendar-cell");
-                calendarGrid.appendChild(emptyCell);
-            }
-        
-            // Render days
-            for (let day = 1; day <= daysInMonth; day++) {
-                const cell = document.createElement("div");
-                cell.classList.add("calendar-cell");
-        
-                const header = document.createElement("div");
-                header.classList.add("calendar-cell-header");
-                header.textContent = day;
-                cell.appendChild(header);
-        
-                const thisDate = new Date(year, month, day).toISOString().split("T")[0];
-        
-                // Find leave events for this date
-                const events = allLeaveRecords.filter(event => {
-                    const start = new Date(event.startDate);
-                    const end = new Date(event.endDate);
-                    const cellDate = new Date(year, month, day);
-                
-                    return cellDate >= start && cellDate <= end;
-                });
-
-        
-                // Create event elements
-                events.forEach(ev => {
+    
+        const monthlyEvents = filterByMonth(fullYearLeaveRecords, y, m);
+    
+        for (let d = 1; d <= totalDays; d++) {
+            const cell = document.createElement("div");
+            cell.classList.add("calendar-cell");
+    
+            const header = document.createElement("div");
+            header.classList.add("calendar-cell-header");
+            header.textContent = d;
+            cell.appendChild(header);
+    
+            const thisDate = new Date(y, m, d);
+    
+            monthlyEvents.forEach(ev => {
+                const s = new Date(ev.startDate);
+                const e = new Date(ev.endDate);
+    
+                if (thisDate >= s && thisDate <= e) {
                     const eventEl = document.createElement("span");
                     eventEl.classList.add("leave-event");
-        
                     eventEl.textContent = ev.staffInitials;
-        
-                    // Tooltip
-                    const tooltip = document.createElement("div");
-                    tooltip.classList.add("leave-tooltip");
-                    tooltip.textContent = `${ev.staffName} (${ev.leaveType})`;
-        
-                    eventEl.addEventListener("mouseenter", () => {
-                        tooltip.style.display = "block";
-                    });
-        
-                    eventEl.addEventListener("mouseleave", () => {
-                        tooltip.style.display = "none";
-                    });
-        
+    
+                    const tip = document.createElement("div");
+                    tip.classList.add("leave-tooltip");
+                    tip.textContent = `${ev.staffName} (${ev.leaveType})`;
+    
+                    eventEl.onmouseenter = () => (tip.style.display = "block");
+                    eventEl.onmouseleave = () => (tip.style.display = "none");
+    
                     cell.appendChild(eventEl);
-                    cell.appendChild(tooltip);
-                });
-        
-                calendarGrid.appendChild(cell);
-            }
-        }
-        
-        
-        /************************************
-         * MONTH NAVIGATION
-         ************************************/
-        document.getElementById("prevMonthBtn").addEventListener("click", () => {
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-            loadLeaveCalendarData();
-        });
-        
-        document.getElementById("nextMonthBtn").addEventListener("click", () => {
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-            loadLeaveCalendarData();
-        });
-
-        
-        
-        /************************************
-         * SHOW TAB HANDLER EXTENSION
-         ************************************/
-        
-
-
-        // Show/hide pages
-        function showTab(tab) {
-            // Remove active status from all sidebar links
-            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-        
-            // Hide all pages
-            document.getElementById('dashboardPage').classList.add('hidden');
-            document.getElementById('leaveHistoryPage').classList.add('hidden');
-            document.getElementById('leaveCalendarPage').classList.add('hidden');
-        
-            switch (tab) {
-        
-                case 'dashboard':
-                    document.getElementById('dashboardPage').classList.remove('hidden');
-                    break;
-        
-                case 'history':
-                    document.getElementById('leaveHistoryPage').classList.remove('hidden');
-                    if (!leaveHistoryLoaded) {
-                        loadLeaveHistory();
-                        leaveHistoryLoaded = true;
-                    }
-                    break;
-        
-                case 'calendar':
-                    document.getElementById('leaveCalendarPage').classList.remove('hidden');
-                    loadLeaveCalendarData();
-                    break;
-        
-                default:
-                    alert("Coming soon!");
-                    break;
-            }
-        
-            // Highlight selected tab
-            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-        }
-
-
-        // Set minimum date to today
-        const today = new Date().toISOString().split('T')[0];
-        startDateInput.min = today;
-        endDateInput.min = today;
-        
-        // Update end date min when start date changes
-        startDateInput.addEventListener('change', function() {
-            endDateInput.min = this.value;
-            calculateDays();
-        });
-        
-        // Calculate days between dates
-        function calculateDays() {
-            if (startDateInput.value && endDateInput.value) {
-                const start = new Date(startDateInput.value);
-                const end = new Date(endDateInput.value);
-                
-                // Make sure end date is not before start date
-                if (end < start) {
-                    endDateInput.value = startDateInput.value;
-                    leaveDaysInput.value = 1;
-                    return;
+                    cell.appendChild(tip);
                 }
-                
-                const diffTime = Math.abs(end - start);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                leaveDaysInput.value = diffDays;
-            }
-        }
-        
-        endDateInput.addEventListener('change', calculateDays);
-        
-        // Open modal when Apply for Leave button is clicked
-        applyLeaveBtn.addEventListener('click', () => {
-            leaveModal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        });
-        
-        // Close modal when X button is clicked
-        closeModalBtn.addEventListener('click', () => {
-            leaveModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        });
-        
-        // Close modal when clicking outside the modal content
-        window.addEventListener('click', (e) => {
-            if (e.target === leaveModal) {
-                leaveModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-        });
-        
-        // Handle leave type card clicks
-        leaveTypeCards.forEach(card => {
-            card.addEventListener('click', () => {
-                const type = card.getAttribute('data-type');
-                leaveTypeSelect.value = type;
-                
-                const typeNames = {
-                    'annual': 'Annual Leave',
-                    'casual': 'Casual Leave',
-                    'sick': 'Sick Leave',
-                    'maternity': 'Maternity Leave'
-                };
-                
-                modalTitle.textContent = `Apply for ${typeNames[type]}`;
-                leaveModal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
             });
-        });
-        
-        // Update modal title when leave type changes
-        leaveTypeSelect.addEventListener('change', function() {
-            const typeNames = {
-                'annual': 'Annual Leave',
-                'casual': 'Casual Leave',
-                'sick': 'Sick Leave',
-                'maternity': 'Maternity Leave'
-            };
-            
-            modalTitle.textContent = `Apply for ${typeNames[this.value]}`;
-        });
-        
-        // Handle form submission
-        leaveForm.addEventListener('submit', async (e) => {
+    
+            calendarGrid.appendChild(cell);
+        }
+    }
+    
+    /* =========================================================
+       MONTH NAVIGATION
+    ========================================================= */
+    document.getElementById("prevMonthBtn").addEventListener("click", () => {
+        currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+        renderCalendar();
+    });
+    
+    document.getElementById("nextMonthBtn").addEventListener("click", () => {
+        currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+        renderCalendar();
+    });
+    
+    /* =========================================================
+       UNIFIED showTab()
+    ========================================================= */
+    function showTab(tab) {
+        document.querySelectorAll(".nav-links a").forEach(link =>
+            link.classList.remove("active")
+        );
+    
+        dashboardPage.classList.add("hidden");
+        leaveHistoryPage.classList.add("hidden");
+        leaveCalendarPage.classList.add("hidden");
+    
+        if (tab === "dashboard") {
+            dashboardPage.classList.remove("hidden");
+    
+        } else if (tab === "history") {
+            leaveHistoryPage.classList.remove("hidden");
+    
+            if (!leaveHistoryLoaded) {
+                loadLeaveHistory();
+                leaveHistoryLoaded = true;
+            }
+    
+        } else if (tab === "calendar") {
+            leaveCalendarPage.classList.remove("hidden");
+            loadLeaveCalendarYear();
+    
+        } else {
+            alert("Coming soon!");
+        }
+    
+        document.querySelector(`[data-tab="${tab}"]`).classList.add("active");
+    }
+    
+    /* =========================================================
+       LEAVE FORM + MODAL LOGIC
+    ========================================================= */
+    applyLeaveBtn.addEventListener("click", () => {
+        leaveModal.style.display = "flex";
+        document.body.style.overflow = "hidden";
+    });
+    
+    closeModalBtn.addEventListener("click", () => {
+        leaveModal.style.display = "none";
+        document.body.style.overflow = "auto";
+    });
+    
+    window.addEventListener("click", e => {
+        if (e.target === leaveModal) {
+            leaveModal.style.display = "none";
+            document.body.style.overflow = "auto";
+        }
+    });
+    
+    /* --- Calculate Days --- */
+    startDateInput.addEventListener("change", calculateDays);
+    endDateInput.addEventListener("change", calculateDays);
+    
+    function calculateDays() {
+        if (!startDateInput.value || !endDateInput.value) return;
+    
+        const s = new Date(startDateInput.value);
+        const e = new Date(endDateInput.value);
+    
+        if (e < s) {
+            endDateInput.value = startDateInput.value;
+            return;
+        }
+    
+        const diff = (e - s) / (1000 * 60 * 60 * 24) + 1;
+        leaveDaysInput.value = diff;
+    }
+    
+    /* --- Submit Leave Form --- */
+    leaveForm.addEventListener("submit", async e => {
+        e.preventDefault();
+    
+        const btn = leaveForm.querySelector("button[type='submit']");
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Submitting...`;
+    
+        const payload = {
+            leaveType: leaveTypeSelect.value,
+            startDate: startDateInput.value,
+            endDate: endDateInput.value,
+            leaveDays: leaveDaysInput.value,
+            reason: document.getElementById("reason").value,
+            contact: document.getElementById("contact").value,
+            employeeId: userData.employeeId
+        };
+    
+        try {
+            const res = await fetch(`${API_BASE}/apply-leave`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+    
+            const data = await res.json();
+    
+            if (!data.success) {
+                showError(data.message || "Failed to submit leave.");
+            } else {
+                alert("Leave request submitted successfully!");
+                leaveModal.style.display = "none";
+                leaveForm.reset();
+            }
+        } catch (err) {
+            showError("Error submitting leave.");
+        }
+    
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fas fa-paper-plane"></i> Submit Leave Application`;
+    });
+    
+    /* =========================================================
+       SIDEBAR TAB BINDINGS
+    ========================================================= */
+    document.querySelectorAll(".nav-links a").forEach(link => {
+        link.addEventListener("click", e => {
             e.preventDefault();
-            
-            const leaveType = leaveTypeSelect.value;
-            const startDate = startDateInput.value;
-            const endDate = endDateInput.value;
-            const leaveDays = leaveDaysInput.value;
-            const reason = document.getElementById('reason').value;
-            const contact = document.getElementById('contact').value;
-            
-            try {
-                // In production, send this to your backend
-                const response = await fetch(`${API_BASE}/apply-leave`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        leaveType,
-                        startDate,
-                        endDate,
-                        leaveDays,
-                        reason,
-                        contact,
-                        employeeId: userData?.employeeId
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert(`Your ${leaveType} leave application for ${leaveDays} days has been submitted successfully!`);
-                    
-                    // Close modal and reset form
-                    leaveModal.style.display = 'none';
-                    document.body.style.overflow = 'auto';
-                    leaveForm.reset();
-                    
-                    // Refresh leave history if we're on that page
-                    if (!document.getElementById('leaveHistoryPage').classList.contains('hidden')) {
-                        leaveHistoryLoaded = false;
-                        loadLeaveHistory();
-                    }
-                } else {
-                    alert(`Failed to submit leave application: ${result.message}`);
-                }
-                
-            } catch (error) {
-                console.error('Leave application error:', error);
-                alert('Failed to submit leave application. Please try again.');
-            }
+            showTab(link.getAttribute("data-tab"));
         });
-
-        // Bind sidebar clicks
-        document.querySelectorAll('.nav-links a').forEach(link => {
-            link.addEventListener('click', e => {
-                e.preventDefault();
-                const tab = link.getAttribute('data-tab');
-                showTab(tab);
-            });
-        });
-        
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            initDashboard();
-            
-            // Set default dates (7 days from now for 3 days)
-            const nextWeek = new Date();
-            nextWeek.setDate(nextWeek.getDate() + 7);
-            const nextWeekPlusTwo = new Date(nextWeek);
-            nextWeekPlusTwo.setDate(nextWeekPlusTwo.getDate() + 2);
-            
-            startDateInput.valueAsDate = nextWeek;
-            endDateInput.valueAsDate = nextWeekPlusTwo;
-            calculateDays();
-        });
+    });
+    
+    /* =========================================================
+       PAGE LOAD
+    ========================================================= */
+    document.addEventListener("DOMContentLoaded", () => {
+        initDashboard();
+        showTab("dashboard");
+    
+        const t = new Date();
+        startDateInput.valueAsDate = t;
+    
+        const end = new Date();
+        end.setDate(end.getDate() + 2);
+        endDateInput.valueAsDate = end;
+    
+        calculateDays();
+    });
     </script>
+
 </body>
 </html>
