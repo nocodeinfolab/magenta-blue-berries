@@ -1452,15 +1452,22 @@
         
         async function loadLeaveCalendarData() {
             try {
-                const response = await fetch(`${API_BASE}/leave-calendar`, {
-                    method: "GET",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" }
-                });
+                const year = currentCalendarDate.getFullYear();
+                const month = currentCalendarDate.getMonth() + 1; // 1–12
+        
+                const response = await fetch(
+                    `${API_BASE}/leave-calendar?year=${year}&month=${month}`,
+                    {
+                        method: "GET",
+                        credentials: "include",
+                        headers: { "Content-Type": "application/json" }
+                    }
+                );
         
                 const data = await response.json();
+        
                 if (!data.success) {
-                    showError("Failed to fetch calendar data.");
+                    showError(data.message || "Failed to fetch calendar data.");
                     return;
                 }
         
@@ -1472,10 +1479,11 @@
                 renderCalendar();
         
             } catch (err) {
-                console.error(err);
+                console.error("Calendar load error:", err);
                 showError("Error loading leave calendar.");
             }
         }
+
         
         
         /************************************
@@ -1552,13 +1560,14 @@
          ************************************/
         document.getElementById("prevMonthBtn").addEventListener("click", () => {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-            renderCalendar();
+            loadLeaveCalendarData();
         });
         
         document.getElementById("nextMonthBtn").addEventListener("click", () => {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-            renderCalendar();
+            loadLeaveCalendarData();
         });
+
         
         
         /************************************
