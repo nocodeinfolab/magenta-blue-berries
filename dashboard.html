@@ -1452,48 +1452,40 @@
         
         async function loadLeaveCalendarData() {
             try {
-                const year = currentCalendarDate.getFullYear();
-                const month = currentCalendarDate.getMonth() + 1; // 1–12
-        
-                const response = await fetch(
-                    `${API_BASE}/leave-calendar?year=${year}&month=${month}`,
-                    {
-                        method: "GET",
-                        credentials: "include",
-                        headers: { "Content-Type": "application/json" }
-                    }
-                );
+                const response = await fetch(`${API_BASE}/leave-calendar`, {
+                    method: "GET",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" }
+                });
         
                 const data = await response.json();
-        
                 if (!data.success) {
-                    showError(data.message || "Failed to fetch calendar data.");
+                    showError("Failed to fetch calendar data.");
                     return;
                 }
         
+                // Store the raw yearly records
                 allLeaveRecords = data.records || [];
-                userUsedDays = data.userUsedDays || 0;
         
-                remainingLeaveDaysLabel.textContent = 24 - userUsedDays;
+                // Update the leave balance display
+                const ANNUAL_ALLOWANCE = 24;
+                const used = data.userAnnualUsedDays || 0;
+                remainingLeaveDaysLabel.textContent = ANNUAL_ALLOWANCE - used;
         
+                // Render the currently selected month
                 renderCalendar();
         
             } catch (err) {
-                console.error("Calendar load error:", err);
+                console.error(err);
                 showError("Error loading leave calendar.");
             }
-        }
-
-        
+        }        
         
         /************************************
          * CALENDAR RENDERING
          ************************************/
         function renderCalendar() {
             calendarGrid.innerHTML = "";
-        
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
         
             const monthName = currentCalendarDate.toLocaleString("en-US", { month: "long" });
             calendarMonthLabel.textContent = `${monthName} ${year}`;
@@ -1523,8 +1515,13 @@
         
                 // Find leave events for this date
                 const events = allLeaveRecords.filter(event => {
-                    return thisDate >= event.startDate && thisDate <= event.endDate;
+                    const start = new Date(event.startDate);
+                    const end = new Date(event.endDate);
+                    const cellDate = new Date(year, month, day);
+                
+                    return cellDate >= start && cellDate <= end;
                 });
+
         
                 // Create event elements
                 events.forEach(ev => {
