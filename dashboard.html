@@ -1564,33 +1564,25 @@
         /************************************
          * SHOW TAB HANDLER EXTENSION
          ************************************/
-        const originalShowTab = showTab;
         
-        showTab = function (tab) {
-            originalShowTab(tab);
-        
-            if (tab === "calendar") {
-                loadLeaveCalendarData();
-                leaveCalendarPage.classList.remove("hidden");
-            }
-        };
 
 
         // Show/hide pages
         function showTab(tab) {
-            // Remove active styling from sidebar
+            // Remove active status from all sidebar links
             document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-
+        
             // Hide all pages
             document.getElementById('dashboardPage').classList.add('hidden');
             document.getElementById('leaveHistoryPage').classList.add('hidden');
-
-            // Show target page
+            document.getElementById('leaveCalendarPage').classList.add('hidden');
+        
             switch (tab) {
+        
                 case 'dashboard':
                     document.getElementById('dashboardPage').classList.remove('hidden');
                     break;
-
+        
                 case 'history':
                     document.getElementById('leaveHistoryPage').classList.remove('hidden');
                     if (!leaveHistoryLoaded) {
@@ -1598,15 +1590,21 @@
                         leaveHistoryLoaded = true;
                     }
                     break;
-
+        
+                case 'calendar':
+                    document.getElementById('leaveCalendarPage').classList.remove('hidden');
+                    loadLeaveCalendarData();
+                    break;
+        
                 default:
                     alert("Coming soon!");
                     break;
             }
-
-            // Highlight active link
+        
+            // Highlight selected tab
             document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
         }
+
 
         // Set minimum date to today
         const today = new Date().toISOString().split('T')[0];
