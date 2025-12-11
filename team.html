@@ -859,13 +859,10 @@
             const data = await response.json();
             
             if (!response.ok || !data.success) {
-                if (response.status === 401 || response.status === 403) {
-                    showError("Access denied. Redirecting to login...");
-                    
-                } else {
-                    throw new Error(data.message || "Failed to load team data");
-                }
-                return null;
+                console.log("BACKEND DEBUG RAW RESPONSE:", data); // ⭐ REQUIRED
+                console.log("BACKEND DEBUG DETAILS:", data.debug); // optional
+            
+                throw new Error(data.message || "Failed to load team data");
             }
     
             return data;
