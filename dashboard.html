@@ -1330,13 +1330,14 @@
         document.getElementById("team").textContent = profile.team;
         document.getElementById("hireDate").textContent = formatDate(profile.hireDate);
         document.getElementById("email").textContent = profile.email;
-        document.getElementById("phoneNumber").textContent = profile.phoneNumber;
-        const manageBtn = document.getElementById("manageTeamBtn");
-        if (profile.role && profile.role.toLowerCase() === "manager") {
+        document.getElementById("phoneNumber").textContent = profile.phoneNumber;       
+        const manageBtn = document.getElementById("manageTeamBtn");       
+        if (profile.role && profile.role.toLowerCase().trim() === "manager") {
             manageBtn.classList.remove("hidden");
-        }
-
-    
+            manageBtn.addEventListener("click", () => {
+                window.location.href = "team.html";
+            });
+        }  
         // Autofill contact field for leave form
         document.getElementById("contact").value =
             profile.phoneNumber || profile.email || "";
