@@ -1339,6 +1339,7 @@
     ========================================================= */
     function populateDashboard(profile) {
         userData = profile;
+        console.log("PROFILE RECEIVED:", profile);
     
         document.getElementById("headerTitle").textContent = `Welcome back, ${profile.firstName || profile.fullName}!`;
         document.getElementById("userAvatar").textContent = getInitials(profile.fullName);
