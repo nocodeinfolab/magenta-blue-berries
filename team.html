@@ -23,6 +23,7 @@
             --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
             --radius: 16px;
             --radius-sm: 12px;
+            --table-border: #e8ecf1;
         }
 
         * {
@@ -401,97 +402,171 @@
             font-weight: 600;
         }
 
-        /* Team Members Grid */
-        .team-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 24px;
-            margin-bottom: 40px;
-        }
-
-        .team-member-card {
+        /* Team Members Table */
+        .team-table-container {
             background: white;
             border-radius: var(--radius);
-            padding: 24px;
             box-shadow: var(--shadow);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 2px solid transparent;
+            overflow: hidden;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
         }
 
-        .team-member-card:hover {
-            transform: translateY(-6px);
+        .team-table-container:hover {
             box-shadow: var(--shadow-lg);
-            border-color: var(--accent);
         }
 
-        .member-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
+        .team-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
         }
 
-        .member-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
+        .team-table thead {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-bottom: 2px solid var(--table-border);
+        }
+
+        .team-table th {
+            padding: 20px 24px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--table-border);
+        }
+
+        .team-table th:first-child {
+            border-radius: var(--radius) 0 0 0;
+        }
+
+        .team-table th:last-child {
+            border-radius: 0 var(--radius) 0 0;
+        }
+
+        .team-table tbody tr {
+            border-bottom: 1px solid var(--table-border);
+            transition: all 0.2s ease;
+        }
+
+        .team-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .team-table tbody tr:hover {
+            background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%);
+            transform: translateX(4px);
+        }
+
+        .team-table td {
+            padding: 20px 24px;
+            color: var(--dark);
+            font-size: 15px;
+            font-weight: 500;
+            vertical-align: middle;
+        }
+
+        .table-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 18px;
+            font-size: 14px;
             color: white;
-            margin-right: 18px;
-            box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
+            margin-right: 12px;
+            box-shadow: 0 4px 8px rgba(155, 89, 182, 0.2);
         }
 
-        .member-info h4 {
-            font-size: 18px;
-            font-weight: 700;
+        .member-cell {
+            display: flex;
+            align-items: center;
+        }
+
+        .member-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .member-name {
+            font-weight: 600;
             color: var(--dark);
             margin-bottom: 4px;
         }
 
-        .member-info p {
+        .member-title {
+            font-size: 13px;
             color: var(--gray);
-            font-size: 14px;
+            font-weight: 400;
         }
 
-        .member-details {
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            padding-top: 16px;
-        }
-
-        .member-detail-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .member-detail-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .member-detail-row strong {
-            color: var(--gray);
+        .employee-id {
+            font-family: 'Courier New', monospace;
+            background: #f8fafc;
+            padding: 6px 12px;
+            border-radius: 6px;
             font-size: 13px;
             font-weight: 500;
+            color: var(--primary);
+            display: inline-block;
         }
 
-        .member-detail-row span {
-            color: var(--dark);
-            font-size: 14px;
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
             font-weight: 600;
-            text-align: right;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
-        .empty-state {
-            grid-column: 1 / -1;
-            text-align: center;
+        .status-active {
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+        }
+
+        .status-inactive {
+            background: rgba(231, 76, 60, 0.1);
+            color: #c0392b;
+        }
+
+        .table-action-btn {
+            background: none;
+            border: 1px solid var(--table-border);
+            color: var(--gray);
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .table-action-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .empty-table-state {
             padding: 60px 40px;
+            text-align: center;
             background: white;
             border-radius: var(--radius);
             box-shadow: var(--shadow);
+            margin-bottom: 40px;
         }
 
         .empty-icon {
@@ -507,18 +582,24 @@
             color: var(--gray);
         }
 
-        .empty-state h3 {
+        .empty-table-state h3 {
             color: var(--dark);
             font-size: 20px;
             margin-bottom: 12px;
             font-weight: 600;
         }
 
-        .empty-state p {
+        .empty-table-state p {
             color: var(--gray);
             font-size: 15px;
             max-width: 400px;
             margin: 0 auto;
+        }
+
+        /* Table Responsive */
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: var(--radius);
         }
 
         /* Error Message */
@@ -535,8 +616,8 @@
 
         /* Responsive */
         @media (max-width: 1200px) {
-            .team-grid {
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            .team-table-container {
+                margin-bottom: 30px;
             }
         }
 
@@ -585,6 +666,11 @@
             
             .manager-details {
                 grid-template-columns: 1fr;
+            }
+            
+            .team-table th, 
+            .team-table td {
+                padding: 16px 20px;
             }
         }
 
@@ -638,13 +724,25 @@
                 margin-bottom: 16px;
             }
             
-            .team-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
+            .team-table-container {
+                border-radius: var(--radius-sm);
             }
             
-            .team-member-card {
-                padding: 20px;
+            .team-table th, 
+            .team-table td {
+                padding: 14px 16px;
+                font-size: 14px;
+            }
+            
+            .table-avatar {
+                width: 36px;
+                height: 36px;
+                font-size: 13px;
+            }
+            
+            .employee-id {
+                font-size: 12px;
+                padding: 4px 10px;
             }
         }
 
@@ -667,14 +765,24 @@
                 font-size: 20px;
             }
             
-            .member-avatar {
-                width: 50px;
-                height: 50px;
-                font-size: 16px;
+            .team-table th, 
+            .team-table td {
+                padding: 12px;
             }
             
-            .member-info h4 {
-                font-size: 16px;
+            .table-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+                margin-right: 8px;
+            }
+            
+            .member-name {
+                font-size: 14px;
+            }
+            
+            .member-title {
+                font-size: 12px;
             }
         }
     </style>
@@ -779,14 +887,32 @@
 
             <!-- Team Members Section -->
             <h3 class="section-title">Team Members</h3>
-            <div class="team-grid" id="teamGrid">
-                <!-- Team members will be inserted here -->
-                <div class="empty-state" id="emptyState">
-                    <div class="empty-icon">
-                        <i class="fas fa-user-friends"></i>
-                    </div>
-                    <h3>No Team Members Found</h3>
-                    <p>There are no team members assigned to you yet. Team members will appear here when they're added to your team.</p>
+            
+            <!-- Empty State -->
+            <div class="empty-table-state" id="emptyState">
+                <div class="empty-icon">
+                    <i class="fas fa-user-friends"></i>
+                </div>
+                <h3>No Team Members Found</h3>
+                <p>There are no team members assigned to you yet. Team members will appear here when they're added to your team.</p>
+            </div>
+            
+            <!-- Team Members Table -->
+            <div class="team-table-container hidden" id="teamTableContainer">
+                <div class="table-responsive">
+                    <table class="team-table" id="teamTable">
+                        <thead>
+                            <tr>
+                                <th>Team Member</th>
+                                <th>Employee ID</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teamTableBody">
+                            <!-- Team members will be inserted here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </main>
@@ -816,7 +942,8 @@
     const managerJobCategory = document.getElementById("managerJobCategory");
     const managerEmployeeId = document.getElementById("managerEmployeeId");
     
-    const teamGrid = document.getElementById("teamGrid");
+    const teamTableContainer = document.getElementById("teamTableContainer");
+    const teamTableBody = document.getElementById("teamTableBody");
     const emptyState = document.getElementById("emptyState");
     
     const sidebarAvatar = document.getElementById("sidebarAvatar");
@@ -859,8 +986,8 @@
             const data = await response.json();
             
             if (!response.ok || !data.success) {
-                console.log("BACKEND DEBUG RAW RESPONSE:", data); // ⭐ REQUIRED
-                console.log("BACKEND DEBUG DETAILS:", data.debug); // optional
+                console.log("BACKEND DEBUG RAW RESPONSE:", data);
+                console.log("BACKEND DEBUG DETAILS:", data.debug);
             
                 throw new Error(data.message || "Failed to load team data");
             }
@@ -897,53 +1024,72 @@
     }
     
     /* =========================================================
-       POPULATE TEAM MEMBERS
+       POPULATE TEAM MEMBERS TABLE
     ========================================================= */
     function populateTeamMembers(teamMembers) {
         teamCount.textContent = teamMembers.length;
         
-        // Hide empty state if there are team members
+        // Show/hide empty state and table
         if (teamMembers.length > 0) {
             emptyState.classList.add("hidden");
+            teamTableContainer.classList.remove("hidden");
+            
+            // Clear existing table rows
+            teamTableBody.innerHTML = '';
+            
+            // Create table rows
+            teamMembers.forEach(member => {
+                const row = document.createElement('tr');
+                const initials = getInitials(member.fullName);
+                const memberId = member.employeeId || 'N/A';
+                const jobTitle = member.jobTitle || 'Employee';
+                
+                // Generate random status for demo purposes
+                const status = Math.random() > 0.2 ? 'active' : 'inactive';
+                const statusText = status === 'active' ? 'Active' : 'On Leave';
+                const statusClass = status === 'active' ? 'status-active' : 'status-inactive';
+                const statusIcon = status === 'active' ? 'fas fa-circle-check' : 'fas fa-clock';
+                
+                row.innerHTML = `
+                    <td>
+                        <div class="member-cell">
+                            <div class="table-avatar">${initials}</div>
+                            <div class="member-info">
+                                <span class="member-name">${formatName(member.fullName)}</span>
+                                <span class="member-title">${jobTitle}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="employee-id">${memberId}</span>
+                    </td>
+                    <td>
+                        <span class="status-badge ${statusClass}">
+                            <i class="${statusIcon}"></i>
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="table-action-btn" onclick="viewMemberDetails('${memberId}')">
+                            <i class="fas fa-eye"></i>
+                            View Details
+                        </button>
+                    </td>
+                `;
+                
+                teamTableBody.appendChild(row);
+            });
         } else {
             emptyState.classList.remove("hidden");
-            return;
+            teamTableContainer.classList.add("hidden");
         }
-        
-        // Clear existing team members (except empty state)
-        teamGrid.innerHTML = '';
-        
-        // Create team member cards
-        teamMembers.forEach(member => {
-            const card = document.createElement('div');
-            card.className = 'team-member-card';
-            
-            const initials = getInitials(member.fullName);
-            const memberId = member.employeeId || 'N/A';
-            const jobTitle = member.jobTitle || 'Employee';
-            
-            card.innerHTML = `
-                <div class="member-header">
-                    <div class="member-avatar">${initials}</div>
-                    <div class="member-info">
-                        <h4>${formatName(member.fullName)}</h4>
-                        <p>${jobTitle}</p>
-                    </div>
-                </div>
-                <div class="member-details">
-                    <div class="member-detail-row">
-                        <strong>Employee ID</strong>
-                        <span>${memberId}</span>
-                    </div>
-                    <div class="member-detail-row">
-                        <strong>Role</strong>
-                        <span>Team Member</span>
-                    </div>
-                </div>
-            `;
-            
-            teamGrid.appendChild(card);
-        });
+    }
+    
+    /* =========================================================
+       VIEW MEMBER DETAILS (DEMO FUNCTION)
+    ========================================================= */
+    function viewMemberDetails(employeeId) {
+        alert(`Viewing details for employee ID: ${employeeId}\n\nThis feature would open a detailed view in a full implementation.`);
     }
     
     /* =========================================================
