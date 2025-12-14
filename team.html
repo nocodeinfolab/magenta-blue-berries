@@ -923,6 +923,9 @@
        GLOBAL CONFIG
     ========================================================= */
     const API_BASE = "https://asiukpohr.nocodeinfolab.workers.dev";
+    let cachedTeamData = null;
+    let originalTeamViewHTML = null;
+
     
     /* =========================================================
        DOM ELEMENTS
@@ -1162,10 +1165,15 @@
             const data = await fetchTeamData();
             
             if (data) {
-                cachedTeamData = data; // ✅ store everything
+                cachedTeamData = data;
                 
                 populateManagerProfile(data.manager);
                 populateTeamMembers(data.team);
+    
+                // ✅ Cache original Team Management view ONCE
+                if (!originalTeamViewHTML) {
+                    originalTeamViewHTML = document.querySelector(".main-content").innerHTML;
+                }
             }
         } catch (err) {
             console.error("Initialization error:", err);
@@ -1173,6 +1181,7 @@
             loadingOverlay.classList.add("hidden");
         }
     }
+
 
     
     /* =========================================================
@@ -1192,8 +1201,19 @@
             // Handle tab switching
             switch(tab) {
                 case 'team':
-                    // Already on team page
+                    if (!originalTeamViewHTML || !cachedTeamData) return;
+                
+                    // Restore original Team Management UI
+                    document.querySelector(".main-content").innerHTML = originalTeamViewHTML;
+                
+                    // Re-bind DOM references (important)
+                    rebindTeamDom();
+                
+                    // Re-populate dynamic data
+                    populateManagerProfile(cachedTeamData.manager);
+                    populateTeamMembers(cachedTeamData.team);
                     break;
+
                 case 'leaves':
                     if (!cachedTeamData) {
                         showError("Team data not loaded yet.");
@@ -1218,6 +1238,26 @@
             }
         });
     });
+    function rebindTeamDom() {
+        // Header
+        pageTitle = document.getElementById("pageTitle");
+        pageSubtitle = document.getElementById("pageSubtitle");
+        teamCount = document.getElementById("teamCount");
+    
+        // Manager
+        managerAvatar = document.getElementById("managerAvatar");
+        managerName = document.getElementById("managerName");
+        managerTitle = document.getElementById("managerTitle");
+        managerDepartment = document.getElementById("managerDepartment");
+        managerJobCategory = document.getElementById("managerJobCategory");
+        managerEmployeeId = document.getElementById("managerEmployeeId");
+    
+        // Team table
+        teamTableContainer = document.getElementById("teamTableContainer");
+        teamTableBody = document.getElementById("teamTableBody");
+        emptyState = document.getElementById("emptyState");
+    }
+
     
     /* =========================================================
        PAGE LOAD
