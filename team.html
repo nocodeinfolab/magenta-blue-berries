@@ -1087,73 +1087,102 @@
     }
 
     function renderTeamLeaves(team, leaves) {
-        // Build list of team employee IDs
-        const teamEmployeeIds = team
-            .map(m => m.employeeId)
-            .filter(Boolean);
+        // Build quick lookup for team members by employee ID
+        const teamMap = {};
+        team.forEach(m => {
+            if (m.employeeId) {
+                teamMap[m.employeeId] = m;
+            }
+        });
     
-        // Filter leave rows for this team
-        const teamLeaves = leaves.filter(l =>
-            teamEmployeeIds.includes(l.employeeId)
-        );
+        // Filter leave rows belonging to team members
+        const teamLeaves = leaves.filter(l => teamMap[l.employeeId]);
     
         // Update header
         pageTitle.textContent = "Team Leaves";
         pageSubtitle.textContent = "Leave records for your team members";
     
-        // Replace main content below header
-        const content = document.createElement("div");
-    
-        if (!teamLeaves.length) {
-            content.innerHTML = `
-                <div class="empty-table-state">
-                    <div class="empty-icon">
-                        <i class="fas fa-calendar-times"></i>
-                    </div>
-                    <h3>No Leave Records</h3>
-                    <p>Your team members have no leave records for the current year.</p>
-                </div>
-            `;
-        } else {
-            content.innerHTML = `
-                <div class="team-table-container">
-                    <div class="table-responsive">
-                        <table class="team-table">
-                            <thead>
-                                <tr>
-                                    <th>Staff</th>
-                                    <th>Employee ID</th>
-                                    <th>Leave Type</th>
-                                    <th>Period</th>
-                                    <th>Days</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${teamLeaves.map(l => `
-                                    <tr>
-                                        <td>${l.name || "N/A"}</td>
-                                        <td><span class="employee-id">${l.employeeId}</span></td>
-                                        <td>${l.leaveType || "N/A"}</td>
-                                        <td>${l.startDate} → ${l.endDate}</td>
-                                        <td>${l.leaveDays ?? "-"}</td>
-                                        <td>${l.status}</td>
-                                    </tr>
-                                `).join("")}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-        }
-    
-        // Remove old dynamic sections
+        // Remove existing team view sections
         document.querySelectorAll(
             ".manager-card, .section-title, .team-table-container, .empty-table-state"
         ).forEach(el => el.remove());
     
-        document.querySelector(".main-content").appendChild(content);
-    }    
+        // Empty state
+        if (!teamLeaves.length) {
+            const empty = document.createElement("div");
+            empty.className = "empty-table-state";
+            empty.innerHTML = `
+                <div class="empty-icon">
+                    <i class="fas fa-calendar-times"></i>
+                </div>
+                <h3>No Leave Records</h3>
+                <p>Your team members have no leave records for the current year.</p>
+            `;
+            document.querySelector(".main-content").appendChild(empty);
+            return;
+        }
+    
+        // Build table container (same class as Team Management)
+        const container = document.createElement("div");
+        container.className = "team-table-container";
+    
+        container.innerHTML = `
+            <div class="table-responsive">
+                <table class="team-table">
+                    <thead>
+                        <tr>
+                            <th>Team Member</th>
+                            <th>Leave Period</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${teamLeaves.map(leave => {
+                            const member = teamMap[leave.employeeId];
+                            const initials = getInitials(member.fullName);
+    
+                            const statusText = leave.status || "Pending";
+                            const isApproved = statusText.toLowerCase() === "approved";
+    
+                            const statusClass = isApproved
+                                ? "status-active"
+                                : "status-inactive";
+    
+                            const statusIcon = isApproved
+                                ? "fas fa-circle-check"
+                                : "fas fa-clock";
+    
+                            return `
+                                <tr>
+                                    <td>
+                                        <div class="member-cell">
+                                            <div class="table-avatar">${initials}</div>
+                                            <div class="member-info">
+                                                <span class="member-name">${member.fullName}</span>
+                                                <span class="member-title">${member.jobTitle || "Employee"}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        ${leave.startDate} → ${leave.endDate}
+                                    </td>
+                                    <td>
+                                        <span class="status-badge ${statusClass}">
+                                            <i class="${statusIcon}"></i>
+                                            ${statusText}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join("")}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    
+        document.querySelector(".main-content").appendChild(container);
+    }
+
     
     /* =========================================================
        INITIALIZE PAGE
