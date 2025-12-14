@@ -1131,8 +1131,11 @@
                 <table class="team-table">
                     <thead>
                         <tr>
-                            <th>Team Member</th>
-                            <th>Leave Period</th>
+                            <th>Staff</th>
+                            <th>Employee ID</th>
+                            <th>Leave Type</th>
+                            <th>Period</th>
+                            <th>Days</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -1140,20 +1143,23 @@
                         ${teamLeaves.map(leave => {
                             const member = teamMap[leave.employeeId];
                             const initials = getInitials(member.fullName);
-    
+        
                             const statusText = leave.status || "Pending";
-                            const isApproved = statusText.toLowerCase() === "approved";
-    
-                            const statusClass = isApproved
-                                ? "status-active"
-                                : "status-inactive";
-    
-                            const statusIcon = isApproved
-                                ? "fas fa-circle-check"
-                                : "fas fa-clock";
-    
+                            const normalizedStatus = statusText.toLowerCase();
+        
+                            const statusClass =
+                                normalizedStatus === "approved"
+                                    ? "status-active"
+                                    : "status-inactive";
+        
+                            const statusIcon =
+                                normalizedStatus === "approved"
+                                    ? "fas fa-circle-check"
+                                    : "fas fa-clock";
+        
                             return `
                                 <tr>
+                                    <!-- Staff -->
                                     <td>
                                         <div class="member-cell">
                                             <div class="table-avatar">${initials}</div>
@@ -1163,9 +1169,28 @@
                                             </div>
                                         </div>
                                     </td>
+        
+                                    <!-- Employee ID -->
+                                    <td>
+                                        <span class="employee-id">${leave.employeeId}</span>
+                                    </td>
+        
+                                    <!-- Leave Type -->
+                                    <td>
+                                        ${leave.leaveType || "N/A"}
+                                    </td>
+        
+                                    <!-- Period -->
                                     <td>
                                         ${leave.startDate} → ${leave.endDate}
                                     </td>
+        
+                                    <!-- Days -->
+                                    <td>
+                                        ${leave.leaveDays ?? "-"}
+                                    </td>
+        
+                                    <!-- Status -->
                                     <td>
                                         <span class="status-badge ${statusClass}">
                                             <i class="${statusIcon}"></i>
@@ -1179,6 +1204,7 @@
                 </table>
             </div>
         `;
+
     
         document.querySelector(".main-content").appendChild(container);
     }
