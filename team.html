@@ -792,6 +792,28 @@
         .team-table td {
             font-size: 14px;
         }
+        .leave-period {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1.2;
+            min-width: 110px;
+        }
+        
+        .leave-date {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--dark);
+            white-space: nowrap;
+        }
+        
+        .leave-separator {
+            font-size: 11px;
+            color: var(--gray);
+            text-transform: lowercase;
+            margin: 2px 0;
+        }
+
 
     </style>
 </head>
@@ -1190,8 +1212,13 @@
         
                                     <!-- Period -->
                                     <td>
-                                        ${leave.startDate} → ${leave.endDate}
+                                        <div class="leave-period">
+                                            <span class="leave-date start">${leave.startDate}</span>
+                                            <span class="leave-separator">to</span>
+                                            <span class="leave-date end">${leave.endDate}</span>
+                                        </div>
                                     </td>
+
         
                                     <!-- Days -->
                                     <td>
