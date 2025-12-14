@@ -1039,6 +1039,8 @@
             
             // Create table rows
             teamMembers.forEach(member => {
+                console.log("LEAVE STATUS RAW:", member.fullName, member.leaveStatus, typeof member.leaveStatus);
+
                 const row = document.createElement('tr');
             
                 const initials = getInitials(member.fullName);
@@ -1082,12 +1084,7 @@
         }
     }
     
-    /* =========================================================
-       VIEW MEMBER DETAILS (DEMO FUNCTION)
-    ========================================================= */
-    function viewMemberDetails(employeeId) {
-        alert(`Viewing details for employee ID: ${employeeId}\n\nThis feature would open a detailed view in a full implementation.`);
-    }
+    
     
     /* =========================================================
        INITIALIZE PAGE
