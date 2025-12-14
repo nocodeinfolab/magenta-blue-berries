@@ -1040,16 +1040,17 @@
             // Create table rows
             teamMembers.forEach(member => {
                 const row = document.createElement('tr');
+            
                 const initials = getInitials(member.fullName);
                 const memberId = member.employeeId || 'N/A';
                 const jobTitle = member.jobTitle || 'Employee';
-                
-                // Generate random status for demo purposes
-                const status = Math.random() > 0.2 ? 'active' : 'inactive';
-                const statusText = status === 'active' ? 'Active' : 'On Leave';
-                const statusClass = status === 'active' ? 'status-active' : 'status-inactive';
-                const statusIcon = status === 'active' ? 'fas fa-circle-check' : 'fas fa-clock';
-                
+            
+                const isOnLeave = Number(member.leaveStatus) === 1;
+            
+                const statusText = isOnLeave ? 'On Leave' : 'Active';
+                const statusClass = isOnLeave ? 'status-inactive' : 'status-active';
+                const statusIcon = isOnLeave ? 'fas fa-clock' : 'fas fa-circle-check';
+            
                 row.innerHTML = `
                     <td>
                         <div class="member-cell">
@@ -1076,9 +1077,10 @@
                         </button>
                     </td>
                 `;
-                
+            
                 teamTableBody.appendChild(row);
             });
+
         } else {
             emptyState.classList.remove("hidden");
             teamTableContainer.classList.add("hidden");
