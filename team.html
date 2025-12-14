@@ -1039,8 +1039,7 @@
             
             // Create table rows
             teamMembers.forEach(member => {
-                console.log("LEAVE STATUS RAW:", member.fullName, member.leaveStatus, typeof member.leaveStatus);
-
+                
                 const row = document.createElement('tr');
             
                 const initials = getInitials(member.fullName);
