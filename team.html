@@ -1196,6 +1196,240 @@
                 justify-content: center;
             }
         }
+        /* Filter Section */
+        .filter-section {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-section:hover {
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .filter-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .filter-header h4 {
+            color: var(--dark);
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .filter-count {
+            color: var(--gray);
+            font-size: 13px;
+            font-weight: 500;
+            background: var(--light);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--table-border);
+        }
+        
+        .filter-controls {
+            display: flex;
+            align-items: flex-end;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-group label {
+            display: block;
+            color: var(--gray);
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .filter-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--table-border);
+            border-radius: var(--radius-sm);
+            background: white;
+            color: var(--dark);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2395a5a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 44px;
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .filter-select:hover {
+            border-color: var(--gray);
+        }
+        
+        .filter-clear-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: var(--light);
+            color: var(--gray);
+            border: 2px solid var(--table-border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .filter-clear-btn:hover {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+            transform: translateY(-2px);
+        }
+        
+        .filter-clear-btn i {
+            font-size: 12px;
+        }
+        
+        /* Status colors for filter */
+        .option-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .option-status::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .option-status.pending::before {
+            background: #f39c12;
+        }
+        
+        .option-status.approved::before {
+            background: #27ae60;
+        }
+        
+        .option-status.rejected::before {
+            background: #e74c3c;
+        }
+        
+        /* Active filter indicator */
+        .filter-active {
+            position: relative;
+        }
+        
+        .filter-active::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        
+        /* Status badges */
+        .status-pending {
+            background: rgba(243, 156, 18, 0.1);
+            color: #f39c12;
+        }
+        
+        /* Responsive filter */
+        @media (max-width: 768px) {
+            .filter-section {
+                padding: 20px;
+            }
+            
+            .filter-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                min-width: 100%;
+            }
+            
+            .filter-clear-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        /* Active row highlighting */
+        .leave-row:hover {
+            background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%) !important;
+            transform: translateX(4px);
+        }
+        
+        /* Status filter highlighting */
+        .filter-select option[value="pending"] {
+            color: #f39c12;
+            font-weight: 500;
+        }
+        
+        .filter-select option[value="approved"] {
+            color: #27ae60;
+            font-weight: 500;
+        }
+        
+        .filter-select option[value="rejected"] {
+            color: #e74c3c;
+            font-weight: 500;
+        }
+        
+        /* Empty state with filter */
+        .empty-table-state .table-action-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .empty-table-state .table-action-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
 
 
     </style>
@@ -1509,7 +1743,7 @@
         });
     
         // Filter leave rows belonging to team members
-        const teamLeaves = leaves.filter(l => teamMap[l.employeeId]);
+        let teamLeaves = leaves.filter(l => teamMap[l.employeeId]);
     
         // Update header
         pageTitle.textContent = "Team Leaves";
@@ -1520,120 +1754,213 @@
             ".manager-card, .section-title, .team-table-container, .empty-table-state"
         ).forEach(el => el.remove());
     
-        // Empty state
-        if (!teamLeaves.length) {
-            const empty = document.createElement("div");
-            empty.className = "empty-table-state";
-            empty.innerHTML = `
-                <div class="empty-icon">
-                    <i class="fas fa-calendar-times"></i>
+        // Create filter section
+        const filterSection = document.createElement('div');
+        filterSection.className = 'filter-section';
+        filterSection.innerHTML = `
+            <div class="filter-container">
+                <div class="filter-header">
+                    <h4>Filter Leaves</h4>
+                    <span class="filter-count" id="filterCount">Showing ${teamLeaves.length} records</span>
                 </div>
-                <h3>No Leave Records</h3>
-                <p>Your team members have no leave records for the current year.</p>
-            `;
-            document.querySelector(".main-content").appendChild(empty);
-            return;
-        }
-    
-        // Build table container
-        const container = document.createElement("div");
-        container.className = "team-table-container";
-    
-        container.innerHTML = `
-            <div class="table-responsive">
-                <table class="team-table">
-                    <thead>
-                        <tr>
-                            <th>Staff</th>
-                            <th>Employee ID</th>
-                            <th>Leave Type</th>
-                            <th>Period</th>
-                            <th>Days</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${teamLeaves.map((leave, index) => {
-                            const member = teamMap[leave.employeeId];
-                            const initials = getInitials(member.fullName);
-    
-                            const statusText = leave.status || "Pending";
-                            const normalizedStatus = statusText.toLowerCase();
-    
-                            const statusClass =
-                                normalizedStatus === "approved"
-                                    ? "status-active"
-                                    : normalizedStatus === "rejected"
-                                    ? "status-inactive"
-                                    : "status-pending";
-    
-                            const statusIcon =
-                                normalizedStatus === "approved"
-                                    ? "fas fa-circle-check"
-                                    : normalizedStatus === "rejected"
-                                    ? "fas fa-times-circle"
-                                    : "fas fa-clock";
-    
-                            // Store leave data as data attributes
-                            return `
-                                <tr class="leave-row" 
-                                    data-index="${index}"
-                                    data-leave-data='${JSON.stringify(leave).replace(/'/g, "&apos;")}'
-                                    data-member-data='${JSON.stringify(member).replace(/'/g, "&apos;")}'>
-                                    <td>
-                                        <div class="member-cell">
-                                            <div class="table-avatar">${initials}</div>
-                                            <div class="member-info">
-                                                <span class="member-name">${member.fullName}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="employee-id">${leave.employeeId}</span>
-                                    </td>
-                                    <td>
-                                        ${leave.leaveType || "N/A"}
-                                    </td>
-                                    <td>
-                                        <div class="leave-period">
-                                            <span class="leave-date start">${leave.startDate}</span>
-                                            <span class="leave-separator">to</span>
-                                            <span class="leave-date end">${leave.endDate}</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        ${leave.leaveDays ?? "-"}
-                                    </td>
-                                    <td>
-                                        <span class="status-badge ${statusClass}">
-                                            <i class="${statusIcon}"></i>
-                                            ${statusText}
-                                        </span>
-                                    </td>
-                                </tr>
-                            `;
-                        }).join("")}
-                    </tbody>
-                </table>
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="statusFilter">Status</label>
+                        <select id="statusFilter" class="filter-select">
+                            <option value="all">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <button class="filter-clear-btn" id="clearFilters">
+                        <i class="fas fa-times"></i>
+                        Clear Filters
+                    </button>
+                </div>
             </div>
         `;
     
-        document.querySelector(".main-content").appendChild(container);
+        document.querySelector(".main-content").appendChild(filterSection);
     
-        // Add click event to table rows
-        setTimeout(() => {
-            document.querySelectorAll('.leave-row').forEach(row => {
-                row.addEventListener('click', function() {
-                    const leaveData = JSON.parse(this.getAttribute('data-leave-data'));
-                    const memberData = JSON.parse(this.getAttribute('data-member-data'));
-                    showLeaveApprovalModal(leaveData, memberData);
+        // Store original leaves for filtering
+        let allLeaves = [...teamLeaves];
+        let currentFilter = 'all';
+    
+        // Function to filter and render table
+        function filterAndRenderTable() {
+            let filteredLeaves = allLeaves;
+            
+            // Apply status filter
+            if (currentFilter !== 'all') {
+                filteredLeaves = allLeaves.filter(leave => {
+                    const status = (leave.status || '').toLowerCase();
+                    return status === currentFilter;
                 });
+            }
+            
+            teamLeaves = filteredLeaves;
+            
+            // Update filter count
+            document.getElementById('filterCount').textContent = `Showing ${filteredLeaves.length} records`;
+            
+            // Remove existing table if it exists
+            const existingTable = document.querySelector('.team-table-container');
+            if (existingTable) {
+                existingTable.remove();
+            }
+            
+            // Remove empty state if it exists
+            const existingEmptyState = document.querySelector('.empty-table-state');
+            if (existingEmptyState) {
+                existingEmptyState.remove();
+            }
+    
+            // Show empty state if no records after filtering
+            if (!filteredLeaves.length) {
+                const empty = document.createElement("div");
+                empty.className = "empty-table-state";
+                empty.innerHTML = `
+                    <div class="empty-icon">
+                        <i class="fas fa-calendar-times"></i>
+                    </div>
+                    <h3>No Leave Records Found</h3>
+                    <p>No leave records match your filter criteria. Try changing your filter settings.</p>
+                    <button class="table-action-btn" id="clearFilterBtn" style="margin-top: 16px;">
+                        <i class="fas fa-filter"></i>
+                        Clear Filters
+                    </button>
+                `;
+                document.querySelector(".main-content").appendChild(empty);
                 
-                // Add hover effect
-                row.style.cursor = 'pointer';
-            });
-        }, 100);
+                // Add event listener to clear filter button
+                setTimeout(() => {
+                    document.getElementById('clearFilterBtn').addEventListener('click', () => {
+                        document.getElementById('statusFilter').value = 'all';
+                        currentFilter = 'all';
+                        filterAndRenderTable();
+                    });
+                }, 100);
+                
+                return;
+            }
+    
+            // Build table container
+            const container = document.createElement("div");
+            container.className = "team-table-container";
+    
+            container.innerHTML = `
+                <div class="table-responsive">
+                    <table class="team-table">
+                        <thead>
+                            <tr>
+                                <th>Staff</th>
+                                <th>Employee ID</th>
+                                <th>Leave Type</th>
+                                <th>Period</th>
+                                <th>Days</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredLeaves.map((leave, index) => {
+                                const member = teamMap[leave.employeeId];
+                                const initials = getInitials(member.fullName);
+    
+                                const statusText = leave.status || "Pending";
+                                const normalizedStatus = statusText.toLowerCase();
+    
+                                const statusClass =
+                                    normalizedStatus === "approved"
+                                        ? "status-active"
+                                        : normalizedStatus === "rejected"
+                                        ? "status-inactive"
+                                        : "status-pending";
+    
+                                const statusIcon =
+                                    normalizedStatus === "approved"
+                                        ? "fas fa-circle-check"
+                                        : normalizedStatus === "rejected"
+                                        ? "fas fa-times-circle"
+                                        : "fas fa-clock";
+    
+                                // Store leave data as data attributes
+                                return `
+                                    <tr class="leave-row" 
+                                        data-index="${index}"
+                                        data-leave-data='${JSON.stringify(leave).replace(/'/g, "&apos;")}'
+                                        data-member-data='${JSON.stringify(member).replace(/'/g, "&apos;")}'>
+                                        <td>
+                                            <div class="member-cell">
+                                                <div class="table-avatar">${initials}</div>
+                                                <div class="member-info">
+                                                    <span class="member-name">${member.fullName}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="employee-id">${leave.employeeId}</span>
+                                        </td>
+                                        <td>
+                                            ${leave.leaveType || "N/A"}
+                                        </td>
+                                        <td>
+                                            <div class="leave-period">
+                                                <span class="leave-date start">${leave.startDate}</span>
+                                                <span class="leave-separator">to</span>
+                                                <span class="leave-date end">${leave.endDate}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            ${leave.leaveDays ?? "-"}
+                                        </td>
+                                        <td>
+                                            <span class="status-badge ${statusClass}">
+                                                <i class="${statusIcon}"></i>
+                                                ${statusText}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join("")}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+    
+            document.querySelector(".main-content").appendChild(container);
+    
+            // Add click event to table rows
+            setTimeout(() => {
+                document.querySelectorAll('.leave-row').forEach(row => {
+                    row.addEventListener('click', function() {
+                        const leaveData = JSON.parse(this.getAttribute('data-leave-data'));
+                        const memberData = JSON.parse(this.getAttribute('data-member-data'));
+                        showLeaveApprovalModal(leaveData, memberData);
+                    });
+                    
+                    // Add hover effect
+                    row.style.cursor = 'pointer';
+                });
+            }, 100);
+        }
+    
+        // Initial render
+        filterAndRenderTable();
+    
+        // Add event listeners for filter controls
+        document.getElementById('statusFilter').addEventListener('change', function() {
+            currentFilter = this.value;
+            filterAndRenderTable();
+        });
+    
+        document.getElementById('clearFilters').addEventListener('click', function() {
+            document.getElementById('statusFilter').value = 'all';
+            currentFilter = 'all';
+            filterAndRenderTable();
+        });
     }
+
     
     // Create and show approval modal
     function showLeaveApprovalModal(leave, member) {
