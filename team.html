@@ -1957,7 +1957,6 @@
         let allLeaves = [...teamLeaves];
         let currentStaffFilter = 'all';
         let currentStatusFilter = 'all';
-        let selectedStaffId = null;
     
         // Function to calculate leave balance for a specific staff member
         function calculateLeaveBalance(staffEmployeeId, leavesToCheck) {
@@ -1987,12 +1986,10 @@
         // Function to update leave balance display
         function updateLeaveBalanceDisplay(staffEmployeeId, leavesToCheck) {
             const balanceCard = document.getElementById('leaveBalanceCard');
-            const balanceStats = document.getElementById('leaveBalanceStats');
             const balanceNote = document.getElementById('balanceNote');
             
             if (staffEmployeeId === 'all') {
                 // Show overall balance message
-                const staffMember = team.find(m => m.employeeId === staffEmployeeId);
                 balanceNote.textContent = 'Showing balance for all staff';
                 
                 // Calculate average or show N/A
