@@ -219,6 +219,8 @@
     let cachedTeamData = null;
     let originalTeamViewHTML = null;
     let userJobTitle = "";
+    let originalTeamLeavesViewHTML = null;
+
 
     
     /* =========================================================
@@ -1546,6 +1548,7 @@
                         showError("Team data not loaded yet.");
                         return;
                     }
+                    document.querySelector(".main-content").innerHTML = "";
                 
                     renderTeamLeaves(
                         cachedTeamData.team,
