@@ -272,11 +272,16 @@
     
     // Check if user has permission for All Staff Leaves tab
     function hasAllStaffLeavesPermission(jobTitle) {
-        const normalizedTitle = (jobTitle || "").toLowerCase();
-        return normalizedTitle.includes("chief executive officer") || 
-               normalizedTitle.includes("ceo") ||
-               normalizedTitle.includes("human resources manager") ||
-               normalizedTitle.includes("hr manager");
+        if (!jobTitle) return false;
+        
+        const exactTitle = jobTitle.trim();
+        const hasPermission = exactTitle === "Chief Executive Officer" || 
+                              exactTitle === "Human Resource Manager";
+        
+        console.log("🔍 Permission Check - Title:", `"${exactTitle}"`, 
+                    "| Has permission:", hasPermission);
+        
+        return hasPermission;
     }
     
     /* =========================================================
