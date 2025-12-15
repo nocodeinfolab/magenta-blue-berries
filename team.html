@@ -10,6 +10,69 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="team.css">
     
+    <style>
+        /* Additional styles for the new tab */
+        .status-group {
+            margin-bottom: 30px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .status-group-header {
+            padding: 16px 20px;
+            background: var(--background-light);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-group-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-group-count {
+            background: var(--gray);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-group.approved .status-group-header {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .status-group.pending .status-group-header {
+            background: rgba(255, 152, 0, 0.1);
+            border-left: 4px solid #FF9800;
+        }
+        
+        .staff-table-container {
+            margin-top: 20px;
+        }
+        
+        .access-denied-message {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-top: 20px;
+        }
+        
+        .access-denied-message .denied-icon {
+            font-size: 48px;
+            color: #ff9800;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
     <!-- Loading Overlay -->
@@ -29,6 +92,13 @@
             <ul class="nav-links">
                 <li><a href="#" class="active" data-tab="team"><i class="fas fa-user-friends"></i> <span>Team Management</span></a></li>
                 <li><a href="#" data-tab="leaves"><i class="fas fa-calendar-alt"></i> <span>Team Leaves</span></a></li>
+                <!-- New Tab - Will be shown/hidden based on role -->
+                <li id="allStaffLeavesTab" style="display: none;">
+                    <a href="#" data-tab="all-staff-leaves">
+                        <i class="fas fa-calendar-check"></i> 
+                        <span>All Staff Leaves</span>
+                    </a>
+                </li>
                 <li><a href="#" data-tab="reports"><i class="fas fa-chart-bar"></i> <span>Reports</span></a></li>
                 <li><a href="#" data-tab="approvals"><i class="fas fa-check-circle"></i> <span>Approvals</span></a></li>
                 <li><a href="#" data-tab="settings"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
@@ -130,7 +200,6 @@
                                 <th>Team Member</th>
                                 <th>Employee ID</th>
                                 <th>Status</th>
-                                
                             </tr>
                         </thead>
                         <tbody id="teamTableBody">
@@ -149,6 +218,7 @@
     const API_BASE = "https://asiukpohr.nocodeinfolab.workers.dev";
     let cachedTeamData = null;
     let originalTeamViewHTML = null;
+    let userJobTitle = "";
 
     
     /* =========================================================
@@ -156,6 +226,7 @@
     ========================================================= */
     const loadingOverlay = document.getElementById("loadingOverlay");
     const errorMessage = document.getElementById("errorMessage");
+    const allStaffLeavesTab = document.getElementById("allStaffLeavesTab");
     
     const pageTitle = document.getElementById("pageTitle");
     const pageSubtitle = document.getElementById("pageSubtitle");
@@ -199,6 +270,15 @@
         return name;
     }
     
+    // Check if user has permission for All Staff Leaves tab
+    function hasAllStaffLeavesPermission(jobTitle) {
+        const normalizedTitle = (jobTitle || "").toLowerCase();
+        return normalizedTitle.includes("chief executive officer") || 
+               normalizedTitle.includes("ceo") ||
+               normalizedTitle.includes("human resources manager") ||
+               normalizedTitle.includes("hr manager");
+    }
+    
     /* =========================================================
        FETCH TEAM DATA
     ========================================================= */
@@ -232,6 +312,16 @@
     ========================================================= */
     function populateManagerProfile(manager) {
         const initials = getInitials(manager.fullName);
+        
+        // Store job title for permission checks
+        userJobTitle = manager.jobTitle || "";
+        
+        // Show/hide All Staff Leaves tab based on role
+        if (hasAllStaffLeavesPermission(userJobTitle)) {
+            allStaffLeavesTab.style.display = "block";
+        } else {
+            allStaffLeavesTab.style.display = "none";
+        }
         
         // Update sidebar
         sidebarAvatar.textContent = initials;
@@ -310,6 +400,467 @@
         }
     }
 
+    /* =========================================================
+       NEW: RENDER ALL STAFF LEAVES TAB
+    ========================================================= */
+    function renderAllStaffLeaves(allLeaves) {
+        // Check permission first
+        if (!hasAllStaffLeavesPermission(userJobTitle)) {
+            // Show access denied message
+            pageTitle.textContent = "Access Denied";
+            pageSubtitle.textContent = "You don't have permission to view this page";
+            
+            // Clear existing content
+            document.querySelector(".main-content").innerHTML = `
+                <div class="access-denied-message">
+                    <div class="denied-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h3>Access Restricted</h3>
+                    <p>The "All Staff Leaves" tab is only available for Chief Executive Officer and Human Resources Manager roles.</p>
+                    <p>Your current role: <strong>${userJobTitle || "Not specified"}</strong></p>
+                    <button class="table-action-btn" onclick="switchToTab('team')" style="margin-top: 20px;">
+                        <i class="fas fa-arrow-left"></i>
+                        Return to Team Management
+                    </button>
+                </div>
+            `;
+            return;
+        }
+        
+        // Filter leaves where HOD Approval is true
+        const hodApprovedLeaves = allLeaves.filter(leave => 
+            leave.hodApproval === true || leave.hodApproval === "true"
+        );
+        
+        // Separate into Approved and Pending groups
+        const approvedLeaves = hodApprovedLeaves.filter(leave => 
+            (leave.status || '').toLowerCase() === 'approved'
+        );
+        
+        const pendingLeaves = hodApprovedLeaves.filter(leave => 
+            (leave.status || '').toLowerCase() === 'pending'
+        );
+        
+        // Update header
+        pageTitle.textContent = "All Staff Leaves";
+        pageSubtitle.textContent = "Leaves with HOD Approval (CEO/HR View)";
+        
+        // Clear existing content
+        document.querySelector(".main-content").innerHTML = `
+            <div class="header">
+                <div class="header-left">
+                    <h2 id="pageTitle">All Staff Leaves</h2>
+                    <p id="pageSubtitle">Leaves with HOD Approval (CEO/HR View)</p>
+                </div>
+            </div>
+            
+            <div class="error-message hidden" id="errorMessage"></div>
+            
+            <div class="staff-table-container">
+                <!-- Approved Leaves Group -->
+                <div class="status-group approved">
+                    <div class="status-group-header">
+                        <div class="status-group-title">
+                            <i class="fas fa-check-circle" style="color: #4CAF50;"></i>
+                            <h3>Approved Leaves</h3>
+                            <span class="status-group-count">${approvedLeaves.length}</span>
+                        </div>
+                        <div class="status-subtitle">
+                            Leaves approved by HOD and HR/CEO
+                        </div>
+                    </div>
+                    ${renderLeavesTable(approvedLeaves, 'approved')}
+                </div>
+                
+                <!-- Pending Leaves Group -->
+                <div class="status-group pending">
+                    <div class="status-group-header">
+                        <div class="status-group-title">
+                            <i class="fas fa-clock" style="color: #FF9800;"></i>
+                            <h3>Pending Approval</h3>
+                            <span class="status-group-count">${pendingLeaves.length}</span>
+                        </div>
+                        <div class="status-subtitle">
+                            Leaves pending HR/CEO approval
+                        </div>
+                    </div>
+                    ${renderLeavesTable(pendingLeaves, 'pending')}
+                </div>
+                
+                <!-- No Leaves Message -->
+                ${hodApprovedLeaves.length === 0 ? `
+                <div class="empty-table-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h3>No HOD Approved Leaves Found</h3>
+                    <p>There are no leave records that have been approved by HODs yet.</p>
+                </div>
+                ` : ''}
+            </div>
+        `;
+        
+        // Re-bind error message element
+        errorMessage = document.getElementById("errorMessage");
+        
+        // Add click handlers to table rows
+        setTimeout(() => {
+            document.querySelectorAll('.leave-row').forEach(row => {
+                row.addEventListener('click', function() {
+                    const leaveData = JSON.parse(this.getAttribute('data-leave-data'));
+                    const memberData = JSON.parse(this.getAttribute('data-member-data'));
+                    showAllStaffLeaveModal(leaveData, memberData);
+                });
+                row.style.cursor = 'pointer';
+            });
+        }, 100);
+    }
+    
+    function renderLeavesTable(leaves, statusType) {
+        if (leaves.length === 0) {
+            return `
+                <div class="empty-table-state" style="margin: 20px; padding: 40px;">
+                    <div class="empty-icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <h4>No ${statusType === 'approved' ? 'Approved' : 'Pending'} Leaves</h4>
+                    <p>There are no ${statusType === 'approved' ? 'approved' : 'pending'} leaves at the moment.</p>
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="table-responsive">
+                <table class="team-table">
+                    <thead>
+                        <tr>
+                            <th>Staff Member</th>
+                            <th>Employee ID</th>
+                            <th>Department</th>
+                            <th>Leave Type</th>
+                            <th>Period</th>
+                            <th>Days</th>
+                            <th>Status</th>
+                            <th>HOD Approved</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${leaves.map((leave, index) => {
+                            // Find member info from cached team data
+                            let member = null;
+                            if (cachedTeamData && cachedTeamData.team) {
+                                member = cachedTeamData.team.find(m => 
+                                    m.employeeId === leave.employeeId
+                                );
+                            }
+                            
+                            // Fallback if member not found in team
+                            if (!member) {
+                                member = {
+                                    fullName: leave.employeeName || "Unknown",
+                                    jobTitle: leave.jobTitle || "N/A",
+                                    department: leave.department || "N/A"
+                                };
+                            }
+                            
+                            const initials = getInitials(member.fullName);
+                            const statusText = leave.status || "Pending";
+                            const normalizedStatus = statusText.toLowerCase();
+                            
+                            const statusClass = normalizedStatus === "approved" ? "status-active" :
+                                              normalizedStatus === "rejected" ? "status-inactive" : 
+                                              "status-pending";
+                            
+                            const statusIcon = normalizedStatus === "approved" ? "fas fa-circle-check" :
+                                             normalizedStatus === "rejected" ? "fas fa-times-circle" : 
+                                             "fas fa-clock";
+                            
+                            return `
+                                <tr class="leave-row" 
+                                    data-index="${index}"
+                                    data-leave-data='${JSON.stringify(leave).replace(/'/g, "&apos;")}'
+                                    data-member-data='${JSON.stringify(member).replace(/'/g, "&apos;")}'>
+                                    <td>
+                                        <div class="member-cell">
+                                            <div class="table-avatar">${initials}</div>
+                                            <div class="member-info">
+                                                <span class="member-name">${member.fullName}</span>
+                                                <span class="member-title">${member.jobTitle || "Employee"}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="employee-id">${leave.employeeId}</span>
+                                    </td>
+                                    <td>
+                                        <span class="department">${member.department || "N/A"}</span>
+                                    </td>
+                                    <td>
+                                        <span class="leave-type-badge ${(leave.leaveType || '').toLowerCase().replace(/\s+/g, '-')}">
+                                            ${leave.leaveType || "N/A"}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="leave-period">
+                                            <span class="leave-date start">${leave.startDate}</span>
+                                            <span class="leave-separator">to</span>
+                                            <span class="leave-date end">${leave.endDate}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="leave-days-count">
+                                            ${leave.leaveDays || leave.daysRequested || "-"}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge ${statusClass}">
+                                            <i class="${statusIcon}"></i>
+                                            ${statusText}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge status-active">
+                                            <i class="fas fa-check-circle"></i>
+                                            Approved
+                                        </span>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join("")}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+    
+    function showAllStaffLeaveModal(leave, member) {
+        // Remove existing modal if any
+        const existingModal = document.getElementById('allStaffLeaveModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+    
+        // Create modal
+        const modal = document.createElement('div');
+        modal.id = 'allStaffLeaveModal';
+        modal.className = 'modal-overlay';
+        
+        // Check if current user can approve (HR Manager or CEO)
+        const canApprove = hasAllStaffLeavesPermission(userJobTitle) && 
+                          (leave.status || '').toLowerCase() === 'pending';
+        
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Leave Details (All Staff View)</h3>
+                    <button class="modal-close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <!-- Staff Information -->
+                    <div class="modal-section">
+                        <h4>Staff Information</h4>
+                        <div class="staff-info">
+                            <div class="staff-avatar">${getInitials(member.fullName)}</div>
+                            <div class="staff-details">
+                                <h5>${member.fullName}</h5>
+                                <p>${member.jobTitle || 'Employee'}</p>
+                                <p class="employee-id-modal">${leave.employeeId}</p>
+                                <p class="department-modal">${member.department || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Leave Details -->
+                    <div class="modal-section">
+                        <h4>Leave Details</h4>
+                        <div class="leave-details-grid">
+                            <div class="detail-item">
+                                <strong>Leave Type</strong>
+                                <span>${leave.leaveType || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Period</strong>
+                                <span>${leave.startDate} to ${leave.endDate}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Days</strong>
+                                <span>${leave.leaveDays || leave.daysRequested || '-'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Status</strong>
+                                <span class="status-badge ${leave.status === 'Approved' ? 'status-active' : leave.status === 'Rejected' ? 'status-inactive' : 'status-pending'}">
+                                    ${leave.status || 'Pending'}
+                                </span>
+                            </div>
+                        </div>
+                        ${leave.reason ? `
+                        <div class="detail-item full-width">
+                            <strong>Reason</strong>
+                            <p class="leave-reason">${leave.reason}</p>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- Approval Status -->
+                    <div class="modal-section">
+                        <h4>Approval Status</h4>
+                        <div class="approval-status-grid">
+                            <div class="approval-status approved">
+                                <i class="fas fa-check-circle"></i>
+                                <span>HOD Approved</span>
+                            </div>
+                            <div class="approval-status ${leave.hrApproval ? 'approved' : 'pending'}">
+                                <i class="fas ${leave.hrApproval ? 'fa-check-circle' : 'fa-clock'}"></i>
+                                <span>HR ${leave.hrApproval ? 'Approved' : 'Pending'}</span>
+                            </div>
+                            <div class="approval-status ${leave.ceoApproval ? 'approved' : 'pending'}">
+                                <i class="fas ${leave.ceoApproval ? 'fa-check-circle' : 'fa-clock'}"></i>
+                                <span>CEO ${leave.ceoApproval ? 'Approved' : 'Pending'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Approval Action (only if pending and user has permission) -->
+                    ${canApprove ? `
+                    <div class="modal-section">
+                        <h4>${userJobTitle.includes('HR') ? 'HR' : 'CEO'} Action</h4>
+                        <div class="approval-action-section">
+                            <p class="approval-note">This leave has been approved by HOD. You can now provide ${userJobTitle.includes('HR') ? 'HR' : 'CEO'} approval.</p>
+                            <div class="approval-actions">
+                                <button class="approve-btn final-approve" data-leave-id="${leave.id || leave.employeeId}">
+                                    <i class="fas fa-thumbs-up"></i>
+                                    ${userJobTitle.includes('HR') ? 'HR Approve' : 'CEO Approve'}
+                                </button>
+                                <button class="reject-btn final-reject" data-leave-id="${leave.id || leave.employeeId}">
+                                    <i class="fas fa-thumbs-down"></i>
+                                    Reject
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    ` : leave.status === 'Approved' ? `
+                    <div class="modal-section">
+                        <div class="already-approved">
+                            <i class="fas fa-check-circle"></i>
+                            <p>This leave has already been fully approved.</p>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    
+        document.body.appendChild(modal);
+    
+        // Add event listeners
+        modal.querySelector('.modal-close-btn').addEventListener('click', () => {
+            modal.remove();
+        });
+    
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+    
+        // Add approval button listeners
+        if (canApprove) {
+            modal.querySelector('.final-approve').addEventListener('click', function() {
+                const leaveId = this.getAttribute('data-leave-id');
+                approveFinalLeave(leaveId, true, userJobTitle.includes('HR') ? 'hr' : 'ceo');
+            });
+    
+            modal.querySelector('.final-reject').addEventListener('click', function() {
+                const leaveId = this.getAttribute('data-leave-id');
+                approveFinalLeave(leaveId, false, userJobTitle.includes('HR') ? 'hr' : 'ceo');
+            });
+        }
+    }
+    
+    async function approveFinalLeave(leaveId, approve, approvalType) {
+        try {
+            const modal = document.getElementById('allStaffLeaveModal');
+            const actionSection = modal.querySelector('.approval-action-section');
+            const originalHTML = actionSection.innerHTML;
+            
+            actionSection.innerHTML = `
+                <div class="loading-approval">
+                    <div class="spinner-small"></div>
+                    <p>${approve ? 'Approving' : 'Rejecting'} leave request...</p>
+                </div>
+            `;
+    
+            // Call backend API
+            const response = await fetch(`${API_BASE}/approve-leave`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    leaveId: leaveId,
+                    action: approve ? 'approve' : 'reject',
+                    approvalType: approvalType // 'hr' or 'ceo'
+                })
+            });
+    
+            const data = await response.json();
+    
+            if (data.success) {
+                actionSection.innerHTML = `
+                    <div class="approval-success">
+                        <i class="fas fa-check-circle"></i>
+                        <p>Leave ${approve ? 'approved' : 'rejected'} successfully!</p>
+                        <button class="modal-close-btn secondary" onclick="closeModalAndRefreshAllStaff()">
+                            Close & Refresh
+                        </button>
+                    </div>
+                `;
+            } else {
+                actionSection.innerHTML = `
+                    <div class="approval-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Failed to process approval: ${data.message || 'Unknown error'}</p>
+                        <button class="modal-close-btn secondary" onclick="location.reload()">
+                            Retry
+                        </button>
+                    </div>
+                `;
+            }
+    
+        } catch (error) {
+            console.error('Approval error:', error);
+            const modal = document.getElementById('allStaffLeaveModal');
+            const actionSection = modal.querySelector('.approval-action-section');
+            
+            actionSection.innerHTML = `
+                <div class="approval-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Network error: ${error.message}</p>
+                    <button class="modal-close-btn secondary" onclick="location.reload()">
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
+    }
+    
+    function closeModalAndRefreshAllStaff() {
+        const modal = document.getElementById('allStaffLeaveModal');
+        if (modal) modal.remove();
+        
+        // Refresh all staff leaves view
+        if (cachedTeamData) {
+            renderAllStaffLeaves(cachedTeamData.leaves || []);
+        }
+    }
+
+    // Original renderTeamLeaves function (unchanged)
     function renderTeamLeaves(team, leaves) {
         // Build quick lookup for team members by employee ID
         const teamMap = {};
@@ -683,7 +1234,7 @@
         });
     }
     
-    // Create and show approval modal
+    // Original showLeaveApprovalModal function (unchanged)
     function showLeaveApprovalModal(leave, member) {
         // Remove existing modal if any
         const existingModal = document.getElementById('leaveApprovalModal');
@@ -835,7 +1386,7 @@
         }
     }
     
-    // Function to handle HOD approval (will call real backend)
+    // Original approveHODLeave function (unchanged)
     async function approveHODLeave(leaveId, approve) {
         try {
             // Show loading state
@@ -949,6 +1500,15 @@
     /* =========================================================
        TAB NAVIGATION
     ========================================================= */
+    // Helper function to switch tabs programmatically
+    function switchToTab(tabName) {
+        document.querySelectorAll(".nav-links a").forEach(link => {
+            if (link.getAttribute("data-tab") === tabName) {
+                link.click();
+            }
+        });
+    }
+    
     document.querySelectorAll(".nav-links a").forEach(link => {
         link.addEventListener("click", e => {
             e.preventDefault();
@@ -984,8 +1544,17 @@
                 
                     renderTeamLeaves(
                         cachedTeamData.team,
-                        cachedTeamData.leaves
+                        cachedTeamData.leaves || []
                     );
+                    break;
+
+                case 'all-staff-leaves':
+                    if (!cachedTeamData) {
+                        showError("Team data not loaded yet.");
+                        return;
+                    }
+                    
+                    renderAllStaffLeaves(cachedTeamData.leaves || []);
                     break;
 
                 case 'reports':
@@ -1000,6 +1569,7 @@
             }
         });
     });
+    
     function rebindTeamDom() {
         // Header
         pageTitle = document.getElementById("pageTitle");
