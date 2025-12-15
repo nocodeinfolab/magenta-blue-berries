@@ -813,6 +813,59 @@
             text-transform: lowercase;
             margin: 2px 0;
         }
+        /* Approval buttons and status */
+        .approve-btn {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            color: #27ae60;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        
+        .approve-btn:hover {
+            background: #27ae60;
+            color: white;
+            border-color: #27ae60;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(46, 204, 113, 0.3);
+        }
+        
+        .approve-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        /* Make table columns responsive for smaller screens */
+        @media (max-width: 1200px) {
+            .team-table th:nth-child(6),
+            .team-table td:nth-child(6),
+            .team-table th:nth-child(7),
+            .team-table td:nth-child(7),
+            .team-table th:nth-child(8),
+            .team-table td:nth-child(8) {
+                min-width: 120px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .team-table th:nth-child(6),
+            .team-table td:nth-child(6),
+            .team-table th:nth-child(7),
+            .team-table td:nth-child(7),
+            .team-table th:nth-child(8),
+            .team-table td:nth-child(8) {
+                min-width: 110px;
+            }
+        }
 
 
     </style>
@@ -1166,6 +1219,9 @@
                             <th>Leave Type</th>
                             <th>Period</th>
                             <th>Days</th>
+                            <th>HOD Approval</th>
+                            <th>HR Approval</th>
+                            <th>CEO Approval</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -1173,20 +1229,41 @@
                         ${teamLeaves.map(leave => {
                             const member = teamMap[leave.employeeId];
                             const initials = getInitials(member.fullName);
-        
+    
                             const statusText = leave.status || "Pending";
                             const normalizedStatus = statusText.toLowerCase();
-        
+    
                             const statusClass =
                                 normalizedStatus === "approved"
                                     ? "status-active"
                                     : "status-inactive";
-        
+    
                             const statusIcon =
                                 normalizedStatus === "approved"
                                     ? "fas fa-circle-check"
                                     : "fas fa-clock";
-        
+    
+                            // Helper function to render approval status with action button
+                            const renderApprovalCell = (approved, leaveId, approvalType) => {
+                                if (approved) {
+                                    return `
+                                        <span class="status-badge status-active">
+                                            <i class="fas fa-check-circle"></i>
+                                            Approved
+                                        </span>
+                                    `;
+                                } else {
+                                    return `
+                                        <button class="table-action-btn approve-btn" 
+                                                data-leave-id="${leaveId || ''}" 
+                                                data-approval-type="${approvalType}">
+                                            <i class="fas fa-thumbs-up"></i>
+                                            Approve
+                                        </button>
+                                    `;
+                                }
+                            };
+    
                             return `
                                 <tr>
                                     <!-- Staff -->
@@ -1195,21 +1272,20 @@
                                             <div class="table-avatar">${initials}</div>
                                             <div class="member-info">
                                                 <span class="member-name">${member.fullName}</span>
-                                                
                                             </div>
                                         </div>
                                     </td>
-        
+    
                                     <!-- Employee ID -->
                                     <td>
                                         <span class="employee-id">${leave.employeeId}</span>
                                     </td>
-        
+    
                                     <!-- Leave Type -->
                                     <td>
                                         ${leave.leaveType || "N/A"}
                                     </td>
-        
+    
                                     <!-- Period -->
                                     <td>
                                         <div class="leave-period">
@@ -1218,13 +1294,27 @@
                                             <span class="leave-date end">${leave.endDate}</span>
                                         </div>
                                     </td>
-
-        
+    
                                     <!-- Days -->
                                     <td>
                                         ${leave.leaveDays ?? "-"}
                                     </td>
-        
+    
+                                    <!-- HOD Approval -->
+                                    <td>
+                                        ${renderApprovalCell(leave.hodApproval, leave.id || leave.employeeId, 'hod')}
+                                    </td>
+    
+                                    <!-- HR Approval -->
+                                    <td>
+                                        ${renderApprovalCell(leave.hrApproval, leave.id || leave.employeeId, 'hr')}
+                                    </td>
+    
+                                    <!-- CEO Approval -->
+                                    <td>
+                                        ${renderApprovalCell(leave.ceoApproval, leave.id || leave.employeeId, 'ceo')}
+                                    </td>
+    
                                     <!-- Status -->
                                     <td>
                                         <span class="status-badge ${statusClass}">
@@ -1239,9 +1329,48 @@
                 </table>
             </div>
         `;
-
     
         document.querySelector(".main-content").appendChild(container);
+    
+        // Add event listeners to approve buttons
+        setTimeout(() => {
+            document.querySelectorAll('.approve-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const leaveId = this.getAttribute('data-leave-id');
+                    const approvalType = this.getAttribute('data-approval-type');
+                    handleApproveLeave(leaveId, approvalType, this);
+                });
+            });
+        }, 100);
+    }
+    
+    // Function to handle approval (frontend only for now)
+    function handleApproveLeave(leaveId, approvalType, buttonElement) {
+        console.log(`Approving leave ${leaveId} for ${approvalType.toUpperCase()} approval`);
+        
+        // Create a loading state
+        const originalText = buttonElement.innerHTML;
+        buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Approving...';
+        buttonElement.disabled = true;
+        
+        // Simulate API call (will be replaced with real backend later)
+        setTimeout(() => {
+            // Update the button to show approved status
+            buttonElement.innerHTML = '<i class="fas fa-check-circle"></i> Approved';
+            buttonElement.className = 'status-badge status-active';
+            buttonElement.removeAttribute('data-leave-id');
+            buttonElement.removeAttribute('data-approval-type');
+            buttonElement.onclick = null;
+            
+            // Show success message
+            alert(`${approvalType.toUpperCase()} approval granted successfully!`);
+            
+            // Note: In the real implementation, we'll need to:
+            // 1. Make a POST request to update the backend
+            // 2. Refresh the leave data
+            // 3. Update the UI accordingly
+            
+        }, 1000);
     }
 
     
