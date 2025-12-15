@@ -1712,259 +1712,148 @@
     </div>
 
     <script>
-   /* =========================================================
-       GLOBAL CONFIG & STATE
+    /* =========================================================
+       GLOBAL CONFIG
     ========================================================= */
     const API_BASE = "https://asiukpohr.nocodeinfolab.workers.dev";
-    const ANNUAL_LEAVE_DAYS = 24;
-    
     let cachedTeamData = null;
     let originalTeamViewHTML = null;
-    let currentTab = 'team';
+
     
     /* =========================================================
-       DOM ELEMENTS (Will be dynamically rebound)
+       DOM ELEMENTS
     ========================================================= */
-    let loadingOverlay, errorMessage, pageTitle, pageSubtitle, teamCount;
-    let managerAvatar, managerName, managerTitle, managerDepartment, managerJobCategory, managerEmployeeId;
-    let teamTableContainer, teamTableBody, emptyState;
-    let sidebarAvatar, sidebarUserName;
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const errorMessage = document.getElementById("errorMessage");
+    
+    const pageTitle = document.getElementById("pageTitle");
+    const pageSubtitle = document.getElementById("pageSubtitle");
+    const teamCount = document.getElementById("teamCount");
+    
+    const managerCard = document.getElementById("managerCard");
+    const managerAvatar = document.getElementById("managerAvatar");
+    const managerName = document.getElementById("managerName");
+    const managerTitle = document.getElementById("managerTitle");
+    const managerDepartment = document.getElementById("managerDepartment");
+    const managerJobCategory = document.getElementById("managerJobCategory");
+    const managerEmployeeId = document.getElementById("managerEmployeeId");
+    
+    const teamTableContainer = document.getElementById("teamTableContainer");
+    const teamTableBody = document.getElementById("teamTableBody");
+    const emptyState = document.getElementById("emptyState");
+    
+    const sidebarAvatar = document.getElementById("sidebarAvatar");
+    const sidebarUserName = document.getElementById("sidebarUserName");
     
     /* =========================================================
-       CORE UTILITY FUNCTIONS
+       UTILITY FUNCTIONS
     ========================================================= */
-    const Utils = {
-        showError(message, duration = 5000) {
-            if (!errorMessage) return;
-            errorMessage.textContent = message;
-            errorMessage.classList.remove("hidden");
-            setTimeout(() => errorMessage.classList.add("hidden"), duration);
-        },
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.classList.remove("hidden");
+        setTimeout(() => errorMessage.classList.add("hidden"), 5000);
+    }
     
-        getInitials(name) {
-            if (!name || name === "Loading...") return "--";
-            const parts = name.trim().split(/\s+/);
-            if (parts.length >= 2) {
-                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-            }
-            return name.substring(0, 2).toUpperCase();
-        },
-    
-        formatName(name) {
-            return name || "N/A";
-        },
-    
-        formatStatusBadge(status) {
-            const normalized = (status || '').toLowerCase();
-            switch(normalized) {
-                case 'approved':
-                    return { 
-                        text: 'Approved', 
-                        class: 'status-active', 
-                        icon: 'fas fa-circle-check' 
-                    };
-                case 'rejected':
-                    return { 
-                        text: 'Rejected', 
-                        class: 'status-inactive', 
-                        icon: 'fas fa-times-circle' 
-                    };
-                default:
-                    return { 
-                        text: 'Pending', 
-                        class: 'status-pending', 
-                        icon: 'fas fa-clock' 
-                    };
-            }
-        },
-    
-        debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
+    function getInitials(name) {
+        if (!name || name === "Loading...") return "--";
+        const parts = name.trim().split(" ");
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
         }
-    };
+        return name.substring(0, 2).toUpperCase();
+    }
+    
+    function formatName(name) {
+        if (!name) return "N/A";
+        return name;
+    }
     
     /* =========================================================
-       API SERVICE
+       FETCH TEAM DATA
     ========================================================= */
-    const ApiService = {
-        async fetchTeamData() {
-            try {
-                const response = await fetch(`${API_BASE}/manage-team`, {
-                    method: "GET",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" }
-                });
-    
-                const data = await response.json();
-                
-                if (!response.ok || !data.success) {
-                    console.error("API Error:", data);
-                    throw new Error(data.message || "Failed to load team data");
-                }
-    
-                return data;
-            } catch (err) {
-                console.error("Fetch team data error:", err);
-                Utils.showError("Failed to load team data. Please try again.");
-                return null;
-            }
-        },
-    
-        async approveLeave(leaveId, action, approvalType = 'hod') {
-            try {
-                const response = await fetch(`${API_BASE}/approve-leave`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ leaveId, action, approvalType })
-                });
-    
-                return await response.json();
-            } catch (err) {
-                console.error("Approve leave error:", err);
-                throw err;
-            }
-        }
-    };
-    
-    /* =========================================================
-       DATA MANAGER
-    ========================================================= */
-    const DataManager = {
-        teamMap: {},
-    
-        processTeamData(data) {
-            if (!data) return;
-            
-            cachedTeamData = data;
-            
-            // Build team lookup map
-            this.teamMap = {};
-            data.team.forEach(member => {
-                if (member.employeeId) {
-                    this.teamMap[member.employeeId] = member;
-                }
+    async function fetchTeamData() {
+        try {
+            const response = await fetch(`${API_BASE}/manage-team`, {
+                method: "GET",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" }
             });
     
+            const data = await response.json();
+            
+            if (!response.ok || !data.success) {
+                console.log("BACKEND DEBUG RAW RESPONSE:", data);
+                console.log("BACKEND DEBUG DETAILS:", data.debug);
+            
+                throw new Error(data.message || "Failed to load team data");
+            }
+    
             return data;
-        },
-    
-        getTeamMember(employeeId) {
-            return this.teamMap[employeeId];
-        },
-    
-        getTeamLeaves() {
-            return (cachedTeamData?.leaves || []).filter(leave => 
-                this.teamMap[leave.employeeId]
-            );
-        },
-    
-        getUniqueStaffList() {
-            const staffMap = {};
-            return (cachedTeamData?.team || [])
-                .filter(member => member.employeeId && !staffMap[member.employeeId])
-                .map(member => {
-                    staffMap[member.employeeId] = true;
-                    return {
-                        employeeId: member.employeeId,
-                        fullName: member.fullName,
-                        jobTitle: member.jobTitle
-                    };
-                })
-                .sort((a, b) => a.fullName.localeCompare(b.fullName));
-        },
-    
-        calculateLeaveBalance(employeeId) {
-            const leaves = this.getTeamLeaves();
-            
-            const approvedAnnualLeaves = leaves.filter(leave => 
-                leave.employeeId === employeeId &&
-                (leave.status || '').toLowerCase() === 'approved' &&
-                (leave.leaveType || '').toLowerCase() === 'annual'
-            );
-    
-            const usedDays = approvedAnnualLeaves.reduce((total, leave) => {
-                return total + (Number(leave.leaveDays) || Number(leave.daysRequested) || 0);
-            }, 0);
-    
-            const remainingDays = ANNUAL_LEAVE_DAYS - usedDays;
-            
-            return {
-                used: usedDays,
-                remaining: remainingDays > 0 ? remainingDays : 0,
-                exceeded: remainingDays < 0
-            };
+        } catch (err) {
+            console.error("Error fetching team data:", err);
+            showError("Failed to load team data. Please try again.");
+            return null;
         }
-    };
+    }
     
     /* =========================================================
-       UI COMPONENTS
+       POPULATE MANAGER PROFILE
     ========================================================= */
-    const UIComponents = {
-        // Manager Profile
-        renderManagerProfile(manager) {
-            if (!manager) return;
-            
-            const initials = Utils.getInitials(manager.fullName);
-            
-            // Update sidebar
-            if (sidebarAvatar) sidebarAvatar.textContent = initials;
-            if (sidebarUserName) sidebarUserName.textContent = manager.fullName;
-            
-            // Update manager card
-            if (managerAvatar) managerAvatar.textContent = initials;
-            if (managerName) managerName.textContent = Utils.formatName(manager.fullName);
-            if (managerTitle) managerTitle.textContent = manager.jobTitle || "Manager";
-            if (managerDepartment) managerDepartment.textContent = manager.department || "N/A";
-            if (managerJobCategory) managerJobCategory.textContent = manager.jobCategory || "N/A";
-            if (managerEmployeeId) managerEmployeeId.textContent = manager.employeeId || "N/A";
-            
-            // Update page header
-            if (pageTitle) pageTitle.textContent = `${manager.fullName}'s Team`;
-            if (pageSubtitle) pageSubtitle.textContent = `Managing ${manager.department || "the"} department`;
-        },
+    function populateManagerProfile(manager) {
+        const initials = getInitials(manager.fullName);
+        
+        // Update sidebar
+        sidebarAvatar.textContent = initials;
+        sidebarUserName.textContent = manager.fullName;
+        
+        // Update manager card
+        managerAvatar.textContent = initials;
+        managerName.textContent = formatName(manager.fullName);
+        managerTitle.textContent = manager.jobTitle || "Manager";
+        managerDepartment.textContent = manager.department || "N/A";
+        managerJobCategory.textContent = manager.jobCategory || "N/A";
+        managerEmployeeId.textContent = manager.employeeId || "N/A";
+        
+        // Update page title with manager name
+        pageTitle.textContent = `${manager.fullName}'s Team`;
+        pageSubtitle.textContent = `Managing ${manager.department || "the"} department`;
+    }
     
-        // Team Members Table
-        renderTeamMembers(teamMembers) {
-            if (!teamCount || !teamTableContainer || !teamTableBody || !emptyState) return;
-            
-            teamCount.textContent = teamMembers.length;
-            
-            if (teamMembers.length === 0) {
-                emptyState.classList.remove("hidden");
-                teamTableContainer.classList.add("hidden");
-                return;
-            }
-            
+    /* =========================================================
+       POPULATE TEAM MEMBERS TABLE
+    ========================================================= */
+    function populateTeamMembers(teamMembers) {
+        teamCount.textContent = teamMembers.length;
+        
+        // Show/hide empty state and table
+        if (teamMembers.length > 0) {
             emptyState.classList.add("hidden");
             teamTableContainer.classList.remove("hidden");
+            
+            // Clear existing table rows
             teamTableBody.innerHTML = '';
             
+            // Create table rows
             teamMembers.forEach(member => {
-                const initials = Utils.getInitials(member.fullName);
+                
+                const row = document.createElement('tr');
+            
+                const initials = getInitials(member.fullName);
                 const memberId = member.employeeId || 'N/A';
                 const jobTitle = member.jobTitle || 'Employee';
+            
                 const isOnLeave = Number(member.leaveStatus) === 1;
-                
+            
                 const statusText = isOnLeave ? 'On Leave' : 'Active';
                 const statusClass = isOnLeave ? 'status-inactive' : 'status-active';
                 const statusIcon = isOnLeave ? 'fas fa-clock' : 'fas fa-circle-check';
-                
-                const row = document.createElement('tr');
+            
                 row.innerHTML = `
                     <td>
                         <div class="member-cell">
                             <div class="table-avatar">${initials}</div>
                             <div class="member-info">
-                                <span class="member-name">${Utils.formatName(member.fullName)}</span>
+                                <span class="member-name">${formatName(member.fullName)}</span>
                                 <span class="member-title">${jobTitle}</span>
                             </div>
                         </div>
@@ -1978,407 +1867,268 @@
                             ${statusText}
                         </span>
                     </td>
+                    
                 `;
+            
                 teamTableBody.appendChild(row);
             });
-        },
-    
-        // Leave Balance Card
-        createLeaveBalanceCard(staffEmployeeId = 'all') {
-            const balanceCard = document.createElement('div');
-            balanceCard.className = `leave-balance-card ${staffEmployeeId !== 'all' ? 'staff-specific' : ''}`;
-            
-            if (staffEmployeeId === 'all') {
-                balanceCard.innerHTML = `
-                    <div class="leave-balance-header">
-                        <i class="fas fa-calendar-check"></i>
-                        <h5>Annual Leave Balance</h5>
-                    </div>
-                    <div class="leave-balance-stats">
-                        <div class="balance-stat">
-                            <span class="balance-label">Total Allowed</span>
-                            <span class="balance-value total-allowed">${ANNUAL_LEAVE_DAYS}</span>
-                        </div>
-                        <div class="balance-stat">
-                            <span class="balance-label">Used</span>
-                            <span class="balance-value used-days">-</span>
-                        </div>
-                        <div class="balance-stat">
-                            <span class="balance-label">Remaining</span>
-                            <span class="balance-value remaining-days">-</span>
-                        </div>
-                    </div>
-                    <div class="balance-note">Showing balance for all staff</div>
-                `;
-            } else {
-                const staff = DataManager.getTeamMember(staffEmployeeId);
-                const balance = DataManager.calculateLeaveBalance(staffEmployeeId);
-                
-                balanceCard.innerHTML = `
-                    <div class="leave-balance-header">
-                        <i class="fas fa-calendar-check"></i>
-                        <h5>Annual Leave Balance</h5>
-                    </div>
-                    <div class="leave-balance-stats">
-                        <div class="balance-stat">
-                            <span class="balance-label">Total Allowed</span>
-                            <span class="balance-value total-allowed">${ANNUAL_LEAVE_DAYS}</span>
-                        </div>
-                        <div class="balance-stat">
-                            <span class="balance-label">Used</span>
-                            <span class="balance-value used-days">${balance.used}</span>
-                        </div>
-                        <div class="balance-stat">
-                            <span class="balance-label">Remaining</span>
-                            <span class="balance-value remaining-days ${balance.exceeded ? 'exceeded' : ''}">${balance.remaining}</span>
-                        </div>
-                    </div>
-                    <div class="balance-note">Balance for ${staff?.fullName || 'Selected Staff'}</div>
-                `;
+
+        } else {
+            emptyState.classList.remove("hidden");
+            teamTableContainer.classList.add("hidden");
+        }
+    }
+
+    function renderTeamLeaves(team, leaves) {
+        // Build quick lookup for team members by employee ID
+        const teamMap = {};
+        team.forEach(m => {
+            if (m.employeeId) {
+                teamMap[m.employeeId] = m;
             }
-            
-            return balanceCard;
-        },
+        });
     
-        // Filter Section
-        createFilterSection() {
-            const staffList = DataManager.getUniqueStaffList();
-            const section = document.createElement('div');
-            section.className = 'filter-section';
-            
-            section.innerHTML = `
-                <div class="filter-container">
-                    <div class="filter-header">
-                        <h4>Filter Leaves</h4>
-                        <span class="filter-count" id="filterCount">Loading...</span>
+        // Filter leave rows belonging to team members
+        let teamLeaves = leaves.filter(l => teamMap[l.employeeId]);
+    
+        // Update header
+        pageTitle.textContent = "Team Leaves";
+        pageSubtitle.textContent = "Leave records for your team members";
+    
+        // Remove existing team view sections
+        document.querySelectorAll(
+            ".manager-card, .section-title, .team-table-container, .empty-table-state"
+        ).forEach(el => el.remove());
+    
+        // Create filter section
+        const filterSection = document.createElement('div');
+        filterSection.className = 'filter-section';
+        
+        // Create unique staff list for dropdown
+        const staffList = [];
+        const staffMap = {};
+        
+        team.forEach(member => {
+            if (member.employeeId && !staffMap[member.employeeId]) {
+                staffList.push({
+                    employeeId: member.employeeId,
+                    fullName: member.fullName,
+                    jobTitle: member.jobTitle
+                });
+                staffMap[member.employeeId] = true;
+            }
+        });
+        
+        // Sort staff alphabetically by name
+        staffList.sort((a, b) => a.fullName.localeCompare(b.fullName));
+    
+        filterSection.innerHTML = `
+            <div class="filter-container">
+                <div class="filter-header">
+                    <h4>Filter Leaves</h4>
+                    <span class="filter-count" id="filterCount">Showing ${teamLeaves.length} records</span>
+                </div>
+                
+                <!-- Leave Balance Display -->
+                <div class="leave-balance-card" id="leaveBalanceCard">
+                    <div class="leave-balance-header">
+                        <i class="fas fa-calendar-check"></i>
+                        <h5>Annual Leave Balance</h5>
                     </div>
-                    <div id="leaveBalanceContainer"></div>
-                    <div class="filter-controls">
-                        <div class="filter-group">
-                            <label for="staffFilter">Staff Member</label>
-                            <select id="staffFilter" class="filter-select">
-                                <option value="all">All Team Members</option>
-                                ${staffList.map(staff => `
-                                    <option value="${staff.employeeId}">
-                                        ${staff.fullName} (${staff.jobTitle || 'Employee'})
-                                    </option>
-                                `).join('')}
-                            </select>
+                    <div class="leave-balance-stats" id="leaveBalanceStats">
+                        <div class="balance-stat">
+                            <span class="balance-label">Total Allowed</span>
+                            <span class="balance-value total-allowed">24</span>
                         </div>
-                        <div class="filter-group">
-                            <label for="statusFilter">Status</label>
-                            <select id="statusFilter" class="filter-select">
-                                <option value="all">All Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="approved">Approved</option>
-                                <option value="rejected">Rejected</option>
-                            </select>
+                        <div class="balance-stat">
+                            <span class="balance-label">Used</span>
+                            <span class="balance-value used-days" id="usedDays">0</span>
                         </div>
-                        <div class="filter-actions">
-                            <button class="filter-clear-btn" id="clearFilters">
-                                <i class="fas fa-times"></i>
-                                Clear Filters
-                            </button>
+                        <div class="balance-stat">
+                            <span class="balance-label">Remaining</span>
+                            <span class="balance-value remaining-days" id="remainingDays">24</span>
                         </div>
+                    </div>
+                    <div class="balance-note" id="balanceNote">
+                        Showing balance for all staff
                     </div>
                 </div>
-            `;
-            
-            return section;
-        },
-    
-        // Empty State
-        createEmptyState(message = "No records found", icon = "fas fa-calendar-times", buttonText = null) {
-            const empty = document.createElement("div");
-            empty.className = "empty-table-state";
-            
-            empty.innerHTML = `
-                <div class="empty-icon">
-                    <i class="${icon}"></i>
-                </div>
-                <h3>${message}</h3>
-                <p>No records match your filter criteria. Try changing your filter settings.</p>
-                ${buttonText ? `
-                    <button class="table-action-btn" id="clearFilterBtn" style="margin-top: 16px;">
-                        <i class="fas fa-filter"></i>
-                        ${buttonText}
-                    </button>
-                ` : ''}
-            `;
-            
-            return empty;
-        },
-    
-        // Leave Details Modal
-        createLeaveApprovalModal(leave, member) {
-            const hodApproved = leave.hodApproval === true;
-            const canApproveHOD = !hodApproved;
-            
-            const modal = document.createElement('div');
-            modal.id = 'leaveApprovalModal';
-            modal.className = 'modal-overlay';
-            
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>Leave Approval Details</h3>
-                        <button class="modal-close-btn">
+                
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="staffFilter">Staff Member</label>
+                        <select id="staffFilter" class="filter-select">
+                            <option value="all">All Team Members</option>
+                            ${staffList.map(staff => `
+                                <option value="${staff.employeeId}">
+                                    ${staff.fullName} (${staff.jobTitle || 'Employee'})
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="statusFilter">Status</label>
+                        <select id="statusFilter" class="filter-select">
+                            <option value="all">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button class="filter-clear-btn" id="clearFilters">
                             <i class="fas fa-times"></i>
+                            Clear Filters
                         </button>
                     </div>
-                    <div class="modal-body">
-                        <!-- Staff Information -->
-                        <div class="modal-section">
-                            <h4>Staff Information</h4>
-                            <div class="staff-info">
-                                <div class="staff-avatar">${Utils.getInitials(member.fullName)}</div>
-                                <div class="staff-details">
-                                    <h5>${member.fullName}</h5>
-                                    <p>${member.jobTitle || 'Employee'}</p>
-                                    <p class="employee-id-modal">${leave.employeeId}</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Leave Details -->
-                        <div class="modal-section">
-                            <h4>Leave Details</h4>
-                            <div class="leave-details-grid">
-                                <div class="detail-item">
-                                    <strong>Leave Type</strong>
-                                    <span>${leave.leaveType || 'N/A'}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Period</strong>
-                                    <span>${leave.startDate} to ${leave.endDate}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Days</strong>
-                                    <span>${leave.leaveDays || leave.daysRequested || '-'}</span>
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Status</strong>
-                                    <span class="status-badge ${Utils.formatStatusBadge(leave.status).class}">
-                                        ${leave.status || 'Pending'}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Approval Status -->
-                        <div class="modal-section">
-                            <h4>Approval Status</h4>
-                            <div class="approval-status-grid">
-                                ${this.renderApprovalStatus(leave.hodApproval, 'HOD')}
-                                ${this.renderApprovalStatus(leave.hrApproval, 'HR')}
-                                ${this.renderApprovalStatus(leave.ceoApproval, 'CEO')}
-                            </div>
-                        </div>
-                        
-                        <!-- HOD Approval Action -->
-                        ${canApproveHOD ? this.createHODApprovalSection(leave) : this.createAlreadyApprovedSection()}
-                    </div>
                 </div>
-            `;
+            </div>
+        `;
+    
+        document.querySelector(".main-content").appendChild(filterSection);
+    
+        // Store original leaves for filtering
+        let allLeaves = [...teamLeaves];
+        let currentStaffFilter = 'all';
+        let currentStatusFilter = 'all';
+    
+        // Function to calculate leave balance for a specific staff member
+        function calculateLeaveBalance(staffEmployeeId, leavesToCheck) {
+            const ANNUAL_LEAVE_DAYS = 24;
             
-            return modal;
-        },
-    
-        renderApprovalStatus(approved, type) {
-            return approved ? `
-                <div class="approval-status approved">
-                    <i class="fas fa-check-circle"></i>
-                    <span>${type} Approved</span>
-                </div>
-            ` : `
-                <div class="approval-status pending">
-                    <i class="fas fa-clock"></i>
-                    <span>${type} Pending</span>
-                </div>
-            `;
-        },
-    
-        createHODApprovalSection(leave) {
-            return `
-                <div class="modal-section">
-                    <h4>HOD Action</h4>
-                    <div class="hod-approval-section">
-                        <p class="approval-note">Review and approve this leave request.</p>
-                        <div class="approval-actions">
-                            <button class="approve-btn hod-approve" data-leave-id="${leave.id || leave.employeeId}">
-                                <i class="fas fa-thumbs-up"></i>
-                                Approve Leave
-                            </button>
-                            <button class="reject-btn hod-reject" data-leave-id="${leave.id || leave.employeeId}">
-                                <i class="fas fa-thumbs-down"></i>
-                                Reject Leave
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        },
-    
-        createAlreadyApprovedSection() {
-            return `
-                <div class="modal-section">
-                    <div class="already-approved">
-                        <i class="fas fa-check-circle"></i>
-                        <p>HOD approval has already been granted for this leave request.</p>
-                    </div>
-                </div>
-            `;
+            // Filter approved annual leaves for the staff member
+            const approvedAnnualLeaves = leavesToCheck.filter(leave => {
+                return leave.employeeId === staffEmployeeId &&
+                       (leave.status || '').toLowerCase() === 'approved' &&
+                       (leave.leaveType || '').toLowerCase() === 'annual';
+            });
+            
+            // Calculate total used days
+            const totalUsedDays = approvedAnnualLeaves.reduce((total, leave) => {
+                return total + (Number(leave.leaveDays) || Number(leave.daysRequested) || 0);
+            }, 0);
+            
+            const remainingDays = ANNUAL_LEAVE_DAYS - totalUsedDays;
+            
+            return {
+                used: totalUsedDays,
+                remaining: remainingDays > 0 ? remainingDays : 0,
+                exceeded: remainingDays < 0
+            };
         }
-    };
     
-    /* =========================================================
-       VIEW MANAGERS
-    ========================================================= */
-    const ViewManager = {
-        // Team Management View
-        renderTeamView() {
-            if (!cachedTeamData) return;
+        // Function to update leave balance display
+        function updateLeaveBalanceDisplay(staffEmployeeId, leavesToCheck) {
+            const balanceCard = document.getElementById('leaveBalanceCard');
+            const balanceNote = document.getElementById('balanceNote');
             
-            currentTab = 'team';
-            this.clearMainContent();
+            if (staffEmployeeId === 'all') {
+                // Show overall balance message
+                balanceNote.textContent = 'Showing balance for all staff';
+                
+                // Calculate average or show N/A
+                document.getElementById('usedDays').textContent = '';
+                document.getElementById('remainingDays').textContent = '';
+                
+                balanceCard.classList.remove('staff-specific');
+            } else {
+                // Calculate and display specific staff balance
+                const staffMember = team.find(m => m.employeeId === staffEmployeeId);
+                const balance = calculateLeaveBalance(staffEmployeeId, leavesToCheck);
+                
+                document.getElementById('usedDays').textContent = balance.used;
+                document.getElementById('remainingDays').textContent = balance.remaining;
+                
+                // Update note with staff name
+                balanceNote.textContent = `Balance for ${staffMember?.fullName || 'Selected Staff'}`;
+                
+                // Highlight if exceeded
+                if (balance.exceeded) {
+                    document.getElementById('remainingDays').classList.add('exceeded');
+                } else {
+                    document.getElementById('remainingDays').classList.remove('exceeded');
+                }
+                
+                balanceCard.classList.add('staff-specific');
+            }
+        }
+    
+        // Function to filter and render table
+        function filterAndRenderTable() {
+            let filteredLeaves = allLeaves;
             
-            const mainContent = document.querySelector(".main-content");
-            
-            // Restore original HTML if cached
-            if (originalTeamViewHTML) {
-                mainContent.innerHTML = originalTeamViewHTML;
-                this.rebindTeamDOM();
+            // Apply staff filter
+            if (currentStaffFilter !== 'all') {
+                filteredLeaves = filteredLeaves.filter(leave => 
+                    leave.employeeId === currentStaffFilter
+                );
             }
             
-            // Render data
-            UIComponents.renderManagerProfile(cachedTeamData.manager);
-            UIComponents.renderTeamMembers(cachedTeamData.team);
-        },
-    
-        // Team Leaves View
-        renderLeavesView() {
-            if (!cachedTeamData) return;
-            
-            currentTab = 'leaves';
-            this.clearMainContent();
-            
-            const mainContent = document.querySelector(".main-content");
-            
-            // Create header
-            const header = document.createElement('div');
-            header.className = 'header';
-            header.innerHTML = `
-                <div class="header-left">
-                    <h2>Team Leaves</h2>
-                    <p>Leave records for your team members</p>
-                </div>
-            `;
-            mainContent.appendChild(header);
-            
-            // Add filter section
-            const filterSection = UIComponents.createFilterSection();
-            mainContent.appendChild(filterSection);
-            
-            // Set up filters
-            const filterState = {
-                staff: 'all',
-                status: 'all',
-                filteredLeaves: DataManager.getTeamLeaves()
-            };
-            
-            this.setupFilters(filterSection, filterState);
-            this.renderLeavesTable(filterState.filteredLeaves, filterState);
-        },
-    
-        setupFilters(container, filterState) {
-            const staffFilter = container.querySelector('#staffFilter');
-            const statusFilter = container.querySelector('#statusFilter');
-            const clearBtn = container.querySelector('#clearFilters');
-            const filterCount = container.querySelector('#filterCount');
-            const balanceContainer = container.querySelector('#leaveBalanceContainer');
-            
-            // Update balance card
-            const updateBalanceCard = () => {
-                balanceContainer.innerHTML = '';
-                balanceContainer.appendChild(UIComponents.createLeaveBalanceCard(filterState.staff));
-            };
-            
-            // Filter function
-            const applyFilters = () => {
-                let filtered = DataManager.getTeamLeaves();
-                
-                if (filterState.staff !== 'all') {
-                    filtered = filtered.filter(leave => leave.employeeId === filterState.staff);
-                }
-                
-                if (filterState.status !== 'all') {
-                    filtered = filtered.filter(leave => 
-                        (leave.status || '').toLowerCase() === filterState.status
-                    );
-                }
-                
-                filterState.filteredLeaves = filtered;
-                filterCount.textContent = `Showing ${filtered.length} records`;
-                
-                updateBalanceCard();
-                ViewManager.renderLeavesTable(filtered, filterState);
-            };
-            
-            // Event listeners
-            staffFilter.addEventListener('change', (e) => {
-                filterState.staff = e.target.value;
-                applyFilters();
-            });
-            
-            statusFilter.addEventListener('change', (e) => {
-                filterState.status = e.target.value;
-                applyFilters();
-            });
-            
-            clearBtn.addEventListener('click', () => {
-                staffFilter.value = 'all';
-                statusFilter.value = 'all';
-                filterState.staff = 'all';
-                filterState.status = 'all';
-                applyFilters();
-            });
-            
-            // Initial render
-            applyFilters();
-        },
-    
-        renderLeavesTable(leaves, filterState) {
-            const mainContent = document.querySelector(".main-content");
-            
-            // Remove existing table/empty state
-            const existingTable = document.querySelector('.team-table-container');
-            const existingEmpty = document.querySelector('.empty-table-state');
-            if (existingTable) existingTable.remove();
-            if (existingEmpty) existingEmpty.remove();
-            
-            if (leaves.length === 0) {
-                const emptyState = UIComponents.createEmptyState(
-                    "No Leave Records Found",
-                    "fas fa-calendar-times",
-                    "Clear Filters"
-                );
-                mainContent.appendChild(emptyState);
-                
-                emptyState.querySelector('#clearFilterBtn')?.addEventListener('click', () => {
-                    document.querySelector('#staffFilter').value = 'all';
-                    document.querySelector('#statusFilter').value = 'all';
-                    filterState.staff = 'all';
-                    filterState.status = 'all';
-                    ViewManager.setupFilters(document.querySelector('.filter-section'), filterState);
+            // Apply status filter
+            if (currentStatusFilter !== 'all') {
+                filteredLeaves = filteredLeaves.filter(leave => {
+                    const status = (leave.status || '').toLowerCase();
+                    return status === currentStatusFilter;
                 });
+            }
+            
+            teamLeaves = filteredLeaves;
+            
+            // Update filter count
+            document.getElementById('filterCount').textContent = `Showing ${filteredLeaves.length} records`;
+            
+            // Update leave balance display
+            updateLeaveBalanceDisplay(currentStaffFilter, allLeaves);
+            
+            // Remove existing table if it exists
+            const existingTable = document.querySelector('.team-table-container');
+            if (existingTable) {
+                existingTable.remove();
+            }
+            
+            // Remove empty state if it exists
+            const existingEmptyState = document.querySelector('.empty-table-state');
+            if (existingEmptyState) {
+                existingEmptyState.remove();
+            }
+    
+            // Show empty state if no records after filtering
+            if (!filteredLeaves.length) {
+                const empty = document.createElement("div");
+                empty.className = "empty-table-state";
+                empty.innerHTML = `
+                    <div class="empty-icon">
+                        <i class="fas fa-calendar-times"></i>
+                    </div>
+                    <h3>No Leave Records Found</h3>
+                    <p>No leave records match your filter criteria. Try changing your filter settings.</p>
+                    <button class="table-action-btn" id="clearFilterBtn" style="margin-top: 16px;">
+                        <i class="fas fa-filter"></i>
+                        Clear Filters
+                    </button>
+                `;
+                document.querySelector(".main-content").appendChild(empty);
+                
+                // Add event listener to clear filter button
+                setTimeout(() => {
+                    document.getElementById('clearFilterBtn').addEventListener('click', () => {
+                        document.getElementById('staffFilter').value = 'all';
+                        document.getElementById('statusFilter').value = 'all';
+                        currentStaffFilter = 'all';
+                        currentStatusFilter = 'all';
+                        filterAndRenderTable();
+                    });
+                }, 100);
                 
                 return;
             }
-            
-            // Create table
+    
+            // Build table container
             const container = document.createElement("div");
             container.className = "team-table-container";
-            
+    
             container.innerHTML = `
                 <div class="table-responsive">
                     <table class="team-table">
@@ -2393,12 +2143,28 @@
                             </tr>
                         </thead>
                         <tbody>
-                            ${leaves.map((leave, index) => {
-                                const member = DataManager.getTeamMember(leave.employeeId);
-                                const initials = Utils.getInitials(member?.fullName);
-                                const status = Utils.formatStatusBadge(leave.status);
-                                const leaveType = (leave.leaveType || '').toLowerCase().replace(/\s+/g, '-');
-                                
+                            ${filteredLeaves.map((leave, index) => {
+                                const member = teamMap[leave.employeeId];
+                                const initials = getInitials(member.fullName);
+    
+                                const statusText = leave.status || "Pending";
+                                const normalizedStatus = statusText.toLowerCase();
+    
+                                const statusClass =
+                                    normalizedStatus === "approved"
+                                        ? "status-active"
+                                        : normalizedStatus === "rejected"
+                                        ? "status-inactive"
+                                        : "status-pending";
+    
+                                const statusIcon =
+                                    normalizedStatus === "approved"
+                                        ? "fas fa-circle-check"
+                                        : normalizedStatus === "rejected"
+                                        ? "fas fa-times-circle"
+                                        : "fas fa-clock";
+    
+                                // Store leave data as data attributes
                                 return `
                                     <tr class="leave-row" 
                                         data-index="${index}"
@@ -2408,7 +2174,7 @@
                                             <div class="member-cell">
                                                 <div class="table-avatar">${initials}</div>
                                                 <div class="member-info">
-                                                    <span class="member-name">${member?.fullName || 'N/A'}</span>
+                                                    <span class="member-name">${member.fullName}</span>
                                                 </div>
                                             </div>
                                         </td>
@@ -2416,7 +2182,7 @@
                                             <span class="employee-id">${leave.employeeId}</span>
                                         </td>
                                         <td>
-                                            <span class="leave-type-badge ${leaveType}">
+                                            <span class="leave-type-badge ${(leave.leaveType || '').toLowerCase().replace(/\s+/g, '-')}">
                                                 ${leave.leaveType || "N/A"}
                                             </span>
                                         </td>
@@ -2428,14 +2194,14 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="leave-days-count ${leaveType === 'annual' ? 'annual-leave' : ''}">
+                                            <span class="leave-days-count ${(leave.leaveType || '').toLowerCase() === 'annual' ? 'annual-leave' : ''}">
                                                 ${leave.leaveDays ?? "-"}
                                             </span>
                                         </td>
                                         <td>
-                                            <span class="status-badge ${status.class}">
-                                                <i class="${status.icon}"></i>
-                                                ${status.text}
+                                            <span class="status-badge ${statusClass}">
+                                                <i class="${statusIcon}"></i>
+                                                ${statusText}
                                             </span>
                                         </td>
                                     </tr>
@@ -2445,254 +2211,392 @@
                     </table>
                 </div>
             `;
-            
-            mainContent.appendChild(container);
-            
-            // Add click events to rows
+    
+            document.querySelector(".main-content").appendChild(container);
+    
+            // Add click event to table rows
             setTimeout(() => {
                 document.querySelectorAll('.leave-row').forEach(row => {
-                    row.style.cursor = 'pointer';
                     row.addEventListener('click', function() {
                         const leaveData = JSON.parse(this.getAttribute('data-leave-data'));
                         const memberData = JSON.parse(this.getAttribute('data-member-data'));
-                        ModalManager.showLeaveApprovalModal(leaveData, memberData);
+                        showLeaveApprovalModal(leaveData, memberData);
                     });
+                    
+                    // Add hover effect
+                    row.style.cursor = 'pointer';
                 });
             }, 100);
-        },
-    
-        clearMainContent() {
-            const mainContent = document.querySelector(".main-content");
-            if (mainContent) {
-                mainContent.innerHTML = '';
-            }
-        },
-    
-        rebindTeamDOM() {
-            // Header
-            pageTitle = document.getElementById("pageTitle");
-            pageSubtitle = document.getElementById("pageSubtitle");
-            teamCount = document.getElementById("teamCount");
-            
-            // Manager
-            managerAvatar = document.getElementById("managerAvatar");
-            managerName = document.getElementById("managerName");
-            managerTitle = document.getElementById("managerTitle");
-            managerDepartment = document.getElementById("managerDepartment");
-            managerJobCategory = document.getElementById("managerJobCategory");
-            managerEmployeeId = document.getElementById("managerEmployeeId");
-            
-            // Team table
-            teamTableContainer = document.getElementById("teamTableContainer");
-            teamTableBody = document.getElementById("teamTableBody");
-            emptyState = document.getElementById("emptyState");
-            
-            // Error message
-            errorMessage = document.getElementById("errorMessage");
-            
-            // Sidebar
-            sidebarAvatar = document.getElementById("sidebarAvatar");
-            sidebarUserName = document.getElementById("sidebarUserName");
-            
-            // Loading overlay
-            loadingOverlay = document.getElementById("loadingOverlay");
         }
-    };
     
-    /* =========================================================
-       MODAL MANAGER
-    ========================================================= */
-    const ModalManager = {
-        currentModal: null,
+        // Initial render
+        filterAndRenderTable();
     
-        showLeaveApprovalModal(leave, member) {
-            this.closeCurrentModal();
-            
-            this.currentModal = UIComponents.createLeaveApprovalModal(leave, member);
-            document.body.appendChild(this.currentModal);
-            
-            this.setupModalEvents(leave);
-        },
+        // Add event listeners for filter controls
+        document.getElementById('staffFilter').addEventListener('change', function() {
+            currentStaffFilter = this.value;
+            filterAndRenderTable();
+        });
     
-        setupModalEvents(leave) {
-            if (!this.currentModal) return;
-            
-            // Close button
-            this.currentModal.querySelector('.modal-close-btn').addEventListener('click', () => {
-                this.closeCurrentModal();
-            });
-            
-            // Close on outside click
-            this.currentModal.addEventListener('click', (e) => {
-                if (e.target === this.currentModal) {
-                    this.closeCurrentModal();
-                }
-            });
-            
-            // HOD approval buttons
-            const approveBtn = this.currentModal.querySelector('.hod-approve');
-            const rejectBtn = this.currentModal.querySelector('.hod-reject');
-            
-            if (approveBtn) {
-                approveBtn.addEventListener('click', () => this.handleHODApproval(leave, true));
+        document.getElementById('statusFilter').addEventListener('change', function() {
+            currentStatusFilter = this.value;
+            filterAndRenderTable();
+        });
+    
+        document.getElementById('clearFilters').addEventListener('click', function() {
+            document.getElementById('staffFilter').value = 'all';
+            document.getElementById('statusFilter').value = 'all';
+            currentStaffFilter = 'all';
+            currentStatusFilter = 'all';
+            filterAndRenderTable();
+        });
+    }
+    
+    // Create and show approval modal
+    function showLeaveApprovalModal(leave, member) {
+        // Remove existing modal if any
+        const existingModal = document.getElementById('leaveApprovalModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+    
+        // Create modal
+        const modal = document.createElement('div');
+        modal.id = 'leaveApprovalModal';
+        modal.className = 'modal-overlay';
+        
+        // Helper to render approval status
+        const renderApprovalStatus = (approved, type) => {
+            if (approved) {
+                return `
+                    <div class="approval-status approved">
+                        <i class="fas fa-check-circle"></i>
+                        <span>${type} Approved</span>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="approval-status pending">
+                        <i class="fas fa-clock"></i>
+                        <span>${type} Pending</span>
+                    </div>
+                `;
             }
-            
-            if (rejectBtn) {
-                rejectBtn.addEventListener('click', () => this.handleHODApproval(leave, false));
-            }
-        },
+        };
     
-        async handleHODApproval(leave, approve) {
-            const actionSection = this.currentModal?.querySelector('.hod-approval-section');
-            if (!actionSection) return;
-            
+        // Check if HOD approval is already done
+        const hodApproved = leave.hodApproval === true;
+        const canApproveHOD = !hodApproved;
+    
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Leave Approval Details</h3>
+                    <button class="modal-close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <!-- Staff Information -->
+                    <div class="modal-section">
+                        <h4>Staff Information</h4>
+                        <div class="staff-info">
+                            <div class="staff-avatar">${getInitials(member.fullName)}</div>
+                            <div class="staff-details">
+                                <h5>${member.fullName}</h5>
+                                <p>${member.jobTitle || 'Employee'}</p>
+                                <p class="employee-id-modal">${leave.employeeId}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Leave Details -->
+                    <div class="modal-section">
+                        <h4>Leave Details</h4>
+                        <div class="leave-details-grid">
+                            <div class="detail-item">
+                                <strong>Leave Type</strong>
+                                <span>${leave.leaveType || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Period</strong>
+                                <span>${leave.startDate} to ${leave.endDate}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Days</strong>
+                                <span>${leave.leaveDays || leave.daysRequested || '-'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Status</strong>
+                                <span class="status-badge ${leave.status === 'Approved' ? 'status-active' : leave.status === 'Rejected' ? 'status-inactive' : 'status-pending'}">
+                                    ${leave.status || 'Pending'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Approval Status -->
+                    <div class="modal-section">
+                        <h4>Approval Status</h4>
+                        <div class="approval-status-grid">
+                            ${renderApprovalStatus(leave.hodApproval, 'HOD')}
+                            ${renderApprovalStatus(leave.hrApproval, 'HR')}
+                            ${renderApprovalStatus(leave.ceoApproval, 'CEO')}
+                        </div>
+                    </div>
+                    
+                    <!-- HOD Approval Action (only if not already approved) -->
+                    ${canApproveHOD ? `
+                    <div class="modal-section">
+                        <h4>HOD Action</h4>
+                        <div class="hod-approval-section">
+                            <p class="approval-note">Review and approve this leave request.</p>
+                            <div class="approval-actions">
+                                <button class="approve-btn hod-approve" data-leave-id="${leave.id || leave.employeeId}">
+                                    <i class="fas fa-thumbs-up"></i>
+                                    Approve Leave
+                                </button>
+                                <button class="reject-btn hod-reject" data-leave-id="${leave.id || leave.employeeId}">
+                                    <i class="fas fa-thumbs-down"></i>
+                                    Reject Leave
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    ` : `
+                    <div class="modal-section">
+                        <div class="already-approved">
+                            <i class="fas fa-check-circle"></i>
+                            <p>HOD approval has already been granted for this leave request.</p>
+                        </div>
+                    </div>
+                    `}
+                </div>
+            </div>
+        `;
+    
+        document.body.appendChild(modal);
+    
+        // Add event listeners
+        modal.querySelector('.modal-close-btn').addEventListener('click', () => {
+            modal.remove();
+        });
+    
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+    
+        // Add HOD approval button listener
+        if (canApproveHOD) {
+            modal.querySelector('.hod-approve').addEventListener('click', function() {
+                const leaveId = this.getAttribute('data-leave-id');
+                approveHODLeave(leaveId, true); // true = approve
+            });
+    
+            modal.querySelector('.hod-reject').addEventListener('click', function() {
+                const leaveId = this.getAttribute('data-leave-id');
+                approveHODLeave(leaveId, false); // false = reject
+            });
+        }
+    }
+    
+    // Function to handle HOD approval (will call real backend)
+    async function approveHODLeave(leaveId, approve) {
+        try {
+            // Show loading state
+            const modal = document.getElementById('leaveApprovalModal');
+            const actionSection = modal.querySelector('.hod-approval-section');
             const originalHTML = actionSection.innerHTML;
             
-            // Show loading
             actionSection.innerHTML = `
                 <div class="loading-approval">
                     <div class="spinner-small"></div>
                     <p>${approve ? 'Approving' : 'Rejecting'} leave request...</p>
                 </div>
             `;
-            
-            try {
-                const result = await ApiService.approveLeave(
-                    leave.id || leave.employeeId,
-                    approve ? 'approve' : 'reject',
-                    'hod'
-                );
-                
-                if (result.success) {
-                    actionSection.innerHTML = `
-                        <div class="approval-success">
-                            <i class="fas fa-check-circle"></i>
-                            <p>Leave ${approve ? 'approved' : 'rejected'} successfully!</p>
-                            <button class="modal-close-btn secondary" id="closeAndRefresh">
-                                Close & Refresh
-                            </button>
-                        </div>
-                    `;
-                    
-                    this.currentModal.querySelector('#closeAndRefresh').addEventListener('click', () => {
-                        this.closeCurrentModal();
-                        App.refreshData();
-                    });
-                } else {
-                    throw new Error(result.message || 'Approval failed');
-                }
-            } catch (error) {
+    
+            // Call backend API (to be implemented)
+            const response = await fetch(`${API_BASE}/approve-leave`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    leaveId: leaveId,
+                    action: approve ? 'approve' : 'reject',
+                    approvalType: 'hod'
+                })
+            });
+    
+            const data = await response.json();
+    
+            if (data.success) {
+                // Show success message
+                actionSection.innerHTML = `
+                    <div class="approval-success">
+                        <i class="fas fa-check-circle"></i>
+                        <p>Leave ${approve ? 'approved' : 'rejected'} successfully!</p>
+                        <button class="modal-close-btn secondary" onclick="closeModalAndRefresh()">
+                            Close & Refresh
+                        </button>
+                    </div>
+                `;
+            } else {
+                // Show error message
                 actionSection.innerHTML = `
                     <div class="approval-error">
                         <i class="fas fa-exclamation-circle"></i>
-                        <p>Error: ${error.message}</p>
+                        <p>Failed to process approval: ${data.message || 'Unknown error'}</p>
                         <button class="modal-close-btn secondary" onclick="location.reload()">
                             Retry
                         </button>
                     </div>
                 `;
             }
-        },
     
-        closeCurrentModal() {
-            if (this.currentModal) {
-                this.currentModal.remove();
-                this.currentModal = null;
-            }
+        } catch (error) {
+            console.error('Approval error:', error);
+            const modal = document.getElementById('leaveApprovalModal');
+            const actionSection = modal.querySelector('.hod-approval-section');
+            
+            actionSection.innerHTML = `
+                <div class="approval-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Network error: ${error.message}</p>
+                    <button class="modal-close-btn secondary" onclick="location.reload()">
+                        Retry
+                    </button>
+                </div>
+            `;
         }
-    };
+    }
     
-    /* =========================================================
-       MAIN APPLICATION
-    ========================================================= */
-    const App = {
-        async initialize() {
-            this.bindGlobalDOM();
-            this.setupNavigation();
-            
-            loadingOverlay?.classList.remove("hidden");
-            
-            try {
-                const data = await ApiService.fetchTeamData();
-                
-                if (data) {
-                    DataManager.processTeamData(data);
-                    
-                    // Cache original team view HTML
-                    if (!originalTeamViewHTML) {
-                        originalTeamViewHTML = document.querySelector(".main-content").innerHTML;
-                    }
-                    
-                    ViewManager.renderTeamView();
-                }
-            } catch (err) {
-                console.error("Initialization error:", err);
-            } finally {
-                loadingOverlay?.classList.add("hidden");
-            }
-        },
-    
-        bindGlobalDOM() {
-            // Core elements
-            loadingOverlay = document.getElementById("loadingOverlay");
-            errorMessage = document.getElementById("errorMessage");
-            sidebarAvatar = document.getElementById("sidebarAvatar");
-            sidebarUserName = document.getElementById("sidebarUserName");
-            
-            ViewManager.rebindTeamDOM();
-        },
-    
-        setupNavigation() {
-            document.querySelectorAll(".nav-links a").forEach(link => {
-                link.addEventListener("click", e => {
-                    e.preventDefault();
-                    
-                    // Update active state
-                    document.querySelectorAll(".nav-links a").forEach(l => 
-                        l.classList.remove("active")
-                    );
-                    link.classList.add("active");
-                    
-                    // Handle tab switch
-                    const tab = link.getAttribute("data-tab");
-                    
-                    switch(tab) {
-                        case 'team':
-                            ViewManager.renderTeamView();
-                            break;
-                        case 'leaves':
-                            ViewManager.renderLeavesView();
-                            break;
-                        case 'reports':
-                            alert("Reports feature coming soon!");
-                            break;
-                        case 'approvals':
-                            alert("Approvals feature coming soon!");
-                            break;
-                        case 'settings':
-                            alert("Settings feature coming soon!");
-                            break;
-                    }
-                });
-            });
-        },
-    
-        refreshData() {
-            console.log("Refreshing data...");
-            // For now, just reload the page
-            location.reload();
-        }
-    };
-    
-    /* =========================================================
-       INITIALIZATION
-    ========================================================= */
-    document.addEventListener("DOMContentLoaded", () => {
-        App.initialize();
+    // Helper function to close modal and refresh data
+    function closeModalAndRefresh() {
+        const modal = document.getElementById('leaveApprovalModal');
+        if (modal) modal.remove();
         
-        // Optional: Auto-refresh every 30 seconds
-        // setInterval(() => App.refreshData(), 30000);
+        // Refresh team data
+        initializePage();
+    }
+
+    
+    /* =========================================================
+       INITIALIZE PAGE
+    ========================================================= */
+    async function initializePage() {
+        loadingOverlay.classList.remove("hidden");
+        
+        try {
+            const data = await fetchTeamData();
+            
+            if (data) {
+                cachedTeamData = data;
+                
+                populateManagerProfile(data.manager);
+                populateTeamMembers(data.team);
+    
+                // ✅ Cache original Team Management view ONCE
+                if (!originalTeamViewHTML) {
+                    originalTeamViewHTML = document.querySelector(".main-content").innerHTML;
+                }
+            }
+        } catch (err) {
+            console.error("Initialization error:", err);
+        } finally {
+            loadingOverlay.classList.add("hidden");
+        }
+    }
+
+
+    
+    /* =========================================================
+       TAB NAVIGATION
+    ========================================================= */
+    document.querySelectorAll(".nav-links a").forEach(link => {
+        link.addEventListener("click", e => {
+            e.preventDefault();
+            const tab = link.getAttribute("data-tab");
+            
+            // Update active state
+            document.querySelectorAll(".nav-links a").forEach(l => 
+                l.classList.remove("active")
+            );
+            link.classList.add("active");
+            
+            // Handle tab switching
+            switch(tab) {
+                case 'team':
+                    if (!originalTeamViewHTML || !cachedTeamData) return;
+                
+                    // Restore original Team Management UI
+                    document.querySelector(".main-content").innerHTML = originalTeamViewHTML;
+                
+                    // Re-bind DOM references (important)
+                    rebindTeamDom();
+                
+                    // Re-populate dynamic data
+                    populateManagerProfile(cachedTeamData.manager);
+                    populateTeamMembers(cachedTeamData.team);
+                    break;
+
+                case 'leaves':
+                    if (!cachedTeamData) {
+                        showError("Team data not loaded yet.");
+                        return;
+                    }
+                
+                    renderTeamLeaves(
+                        cachedTeamData.team,
+                        cachedTeamData.leaves
+                    );
+                    break;
+
+                case 'reports':
+                    alert("Reports feature coming soon!");
+                    break;
+                case 'approvals':
+                    alert("Approvals feature coming soon!");
+                    break;
+                case 'settings':
+                    alert("Settings feature coming soon!");
+                    break;
+            }
+        });
     });
+    function rebindTeamDom() {
+        // Header
+        pageTitle = document.getElementById("pageTitle");
+        pageSubtitle = document.getElementById("pageSubtitle");
+        teamCount = document.getElementById("teamCount");
+    
+        // Manager
+        managerAvatar = document.getElementById("managerAvatar");
+        managerName = document.getElementById("managerName");
+        managerTitle = document.getElementById("managerTitle");
+        managerDepartment = document.getElementById("managerDepartment");
+        managerJobCategory = document.getElementById("managerJobCategory");
+        managerEmployeeId = document.getElementById("managerEmployeeId");
+    
+        // Team table
+        teamTableContainer = document.getElementById("teamTableContainer");
+        teamTableBody = document.getElementById("teamTableBody");
+        emptyState = document.getElementById("emptyState");
+    }
+
+    
+    /* =========================================================
+       PAGE LOAD
+    ========================================================= */
+    document.addEventListener("DOMContentLoaded", initializePage);
+    
+    // Refresh data every 30 seconds (optional)
+    // setInterval(initializePage, 30000);
     </script>
 </body>
 </html>
