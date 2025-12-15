@@ -447,10 +447,7 @@
         }
 
 
-        .team-table tbody tr:hover {
-            background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%);
-            transform: translateX(4px);
-        }
+        
 
         .team-table td {
             padding: 20px 24px;
