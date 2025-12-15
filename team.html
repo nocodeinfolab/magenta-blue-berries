@@ -813,57 +813,387 @@
             text-transform: lowercase;
             margin: 2px 0;
         }
-        /* Approval buttons and status */
-        .approve-btn {
-            background: rgba(46, 204, 113, 0.1);
-            border: 1px solid rgba(46, 204, 113, 0.3);
-            color: #27ae60;
-            padding: 8px 16px;
-            border-radius: var(--radius-sm);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
             align-items: center;
-            gap: 6px;
-            white-space: nowrap;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
         }
         
-        .approve-btn:hover {
-            background: #27ae60;
-            color: white;
-            border-color: #27ae60;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(46, 204, 113, 0.3);
+        .modal-content {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
         }
         
-        .approve-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        /* Make table columns responsive for smaller screens */
-        @media (max-width: 1200px) {
-            .team-table th:nth-child(6),
-            .team-table td:nth-child(6),
-            .team-table th:nth-child(7),
-            .team-table td:nth-child(7),
-            .team-table th:nth-child(8),
-            .team-table td:nth-child(8) {
-                min-width: 120px;
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
         
-        @media (max-width: 992px) {
-            .team-table th:nth-child(6),
-            .team-table td:nth-child(6),
-            .team-table th:nth-child(7),
-            .team-table td:nth-child(7),
-            .team-table th:nth-child(8),
-            .team-table td:nth-child(8) {
-                min-width: 110px;
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 32px;
+            border-bottom: 1px solid var(--table-border);
+        }
+        
+        .modal-header h3 {
+            color: var(--dark);
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .modal-close-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-close-btn:hover {
+            background: var(--light);
+            color: var(--dark);
+        }
+        
+        .modal-body {
+            padding: 32px;
+        }
+        
+        .modal-section {
+            margin-bottom: 32px;
+        }
+        
+        .modal-section h4 {
+            color: var(--dark);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent);
+        }
+        
+        /* Staff Info */
+        .staff-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--light);
+            border-radius: var(--radius-sm);
+        }
+        
+        .staff-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            color: white;
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+        }
+        
+        .staff-details h5 {
+            color: var(--dark);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .staff-details p {
+            color: var(--gray);
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        
+        .employee-id-modal {
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--primary);
+            display: inline-block;
+            border: 1px solid var(--table-border);
+        }
+        
+        /* Leave Details Grid */
+        .leave-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        .leave-details-grid .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .leave-details-grid .detail-item strong {
+            color: var(--gray);
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .leave-details-grid .detail-item span {
+            color: var(--dark);
+            font-size: 15px;
+            font-weight: 600;
+        }
+        
+        /* Approval Status Grid */
+        .approval-status-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        
+        .approval-status {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            gap: 12px;
+        }
+        
+        .approval-status.approved {
+            background: rgba(46, 204, 113, 0.1);
+            border: 2px solid rgba(46, 204, 113, 0.3);
+        }
+        
+        .approval-status.pending {
+            background: rgba(243, 156, 18, 0.1);
+            border: 2px solid rgba(243, 156, 18, 0.3);
+        }
+        
+        .approval-status i {
+            font-size: 32px;
+        }
+        
+        .approval-status.approved i {
+            color: #27ae60;
+        }
+        
+        .approval-status.pending i {
+            color: #f39c12;
+        }
+        
+        .approval-status span {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        /* HOD Approval Section */
+        .hod-approval-section {
+            padding: 24px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: var(--radius);
+            border: 2px solid var(--table-border);
+        }
+        
+        .approval-note {
+            color: var(--dark);
+            font-size: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .approval-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+        
+        .approve-btn, .reject-btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .approve-btn {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+        }
+        
+        .approve-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+        
+        .reject-btn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        }
+        
+        .reject-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+        
+        /* Already Approved */
+        .already-approved {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 32px;
+            background: rgba(46, 204, 113, 0.05);
+            border-radius: var(--radius);
+            gap: 16px;
+        }
+        
+        .already-approved i {
+            font-size: 48px;
+            color: #27ae60;
+        }
+        
+        .already-approved p {
+            color: var(--dark);
+            font-size: 16px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        /* Loading State */
+        .loading-approval {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 32px;
+            gap: 16px;
+        }
+        
+        .spinner-small {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(52, 152, 219, 0.1);
+            border-top: 3px solid var(--secondary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        .loading-approval p {
+            color: var(--dark);
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        /* Success/Error States */
+        .approval-success, .approval-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 32px;
+            gap: 16px;
+            text-align: center;
+        }
+        
+        .approval-success i {
+            font-size: 48px;
+            color: #27ae60;
+        }
+        
+        .approval-error i {
+            font-size: 48px;
+            color: #e74c3c;
+        }
+        
+        .approval-success p, .approval-error p {
+            color: var(--dark);
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .modal-close-btn.secondary {
+            background: var(--light);
+            color: var(--dark);
+            border: 1px solid var(--table-border);
+            padding: 10px 24px;
+            margin-top: 10px;
+        }
+        
+        .modal-close-btn.secondary:hover {
+            background: var(--gray);
+            color: white;
+        }
+        
+        /* Status Pending */
+        .status-pending {
+            background: rgba(243, 156, 18, 0.1);
+            color: #f39c12;
+        }
+        
+        /* Responsive Modal */
+        @media (max-width: 768px) {
+            .modal-content {
+                max-width: 95%;
+            }
+            
+            .modal-header {
+                padding: 20px 24px;
+            }
+            
+            .modal-body {
+                padding: 24px;
+            }
+            
+            .leave-details-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .approval-status-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .approval-actions {
+                flex-direction: column;
+            }
+            
+            .approve-btn, .reject-btn {
+                width: 100%;
+                justify-content: center;
             }
         }
 
@@ -1205,7 +1535,7 @@
             return;
         }
     
-        // Build table container (same class as Team Management)
+        // Build table container
         const container = document.createElement("div");
         container.className = "team-table-container";
     
@@ -1219,14 +1549,11 @@
                             <th>Leave Type</th>
                             <th>Period</th>
                             <th>Days</th>
-                            <th>HOD Approval</th>
-                            <th>HR Approval</th>
-                            <th>CEO Approval</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${teamLeaves.map(leave => {
+                        ${teamLeaves.map((leave, index) => {
                             const member = teamMap[leave.employeeId];
                             const initials = getInitials(member.fullName);
     
@@ -1236,37 +1563,23 @@
                             const statusClass =
                                 normalizedStatus === "approved"
                                     ? "status-active"
-                                    : "status-inactive";
+                                    : normalizedStatus === "rejected"
+                                    ? "status-inactive"
+                                    : "status-pending";
     
                             const statusIcon =
                                 normalizedStatus === "approved"
                                     ? "fas fa-circle-check"
+                                    : normalizedStatus === "rejected"
+                                    ? "fas fa-times-circle"
                                     : "fas fa-clock";
     
-                            // Helper function to render approval status with action button
-                            const renderApprovalCell = (approved, leaveId, approvalType) => {
-                                if (approved) {
-                                    return `
-                                        <span class="status-badge status-active">
-                                            <i class="fas fa-check-circle"></i>
-                                            Approved
-                                        </span>
-                                    `;
-                                } else {
-                                    return `
-                                        <button class="table-action-btn approve-btn" 
-                                                data-leave-id="${leaveId || ''}" 
-                                                data-approval-type="${approvalType}">
-                                            <i class="fas fa-thumbs-up"></i>
-                                            Approve
-                                        </button>
-                                    `;
-                                }
-                            };
-    
+                            // Store leave data as data attributes
                             return `
-                                <tr>
-                                    <!-- Staff -->
+                                <tr class="leave-row" 
+                                    data-index="${index}"
+                                    data-leave-data='${JSON.stringify(leave).replace(/'/g, "&apos;")}'
+                                    data-member-data='${JSON.stringify(member).replace(/'/g, "&apos;")}'>
                                     <td>
                                         <div class="member-cell">
                                             <div class="table-avatar">${initials}</div>
@@ -1275,18 +1588,12 @@
                                             </div>
                                         </div>
                                     </td>
-    
-                                    <!-- Employee ID -->
                                     <td>
                                         <span class="employee-id">${leave.employeeId}</span>
                                     </td>
-    
-                                    <!-- Leave Type -->
                                     <td>
                                         ${leave.leaveType || "N/A"}
                                     </td>
-    
-                                    <!-- Period -->
                                     <td>
                                         <div class="leave-period">
                                             <span class="leave-date start">${leave.startDate}</span>
@@ -1294,28 +1601,9 @@
                                             <span class="leave-date end">${leave.endDate}</span>
                                         </div>
                                     </td>
-    
-                                    <!-- Days -->
                                     <td>
                                         ${leave.leaveDays ?? "-"}
                                     </td>
-    
-                                    <!-- HOD Approval -->
-                                    <td>
-                                        ${renderApprovalCell(leave.hodApproval, leave.id || leave.employeeId, 'hod')}
-                                    </td>
-    
-                                    <!-- HR Approval -->
-                                    <td>
-                                        ${renderApprovalCell(leave.hrApproval, leave.id || leave.employeeId, 'hr')}
-                                    </td>
-    
-                                    <!-- CEO Approval -->
-                                    <td>
-                                        ${renderApprovalCell(leave.ceoApproval, leave.id || leave.employeeId, 'ceo')}
-                                    </td>
-    
-                                    <!-- Status -->
                                     <td>
                                         <span class="status-badge ${statusClass}">
                                             <i class="${statusIcon}"></i>
@@ -1332,45 +1620,252 @@
     
         document.querySelector(".main-content").appendChild(container);
     
-        // Add event listeners to approve buttons
+        // Add click event to table rows
         setTimeout(() => {
-            document.querySelectorAll('.approve-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const leaveId = this.getAttribute('data-leave-id');
-                    const approvalType = this.getAttribute('data-approval-type');
-                    handleApproveLeave(leaveId, approvalType, this);
+            document.querySelectorAll('.leave-row').forEach(row => {
+                row.addEventListener('click', function() {
+                    const leaveData = JSON.parse(this.getAttribute('data-leave-data'));
+                    const memberData = JSON.parse(this.getAttribute('data-member-data'));
+                    showLeaveApprovalModal(leaveData, memberData);
                 });
+                
+                // Add hover effect
+                row.style.cursor = 'pointer';
             });
         }, 100);
     }
     
-    // Function to handle approval (frontend only for now)
-    function handleApproveLeave(leaveId, approvalType, buttonElement) {
-        console.log(`Approving leave ${leaveId} for ${approvalType.toUpperCase()} approval`);
+    // Create and show approval modal
+    function showLeaveApprovalModal(leave, member) {
+        // Remove existing modal if any
+        const existingModal = document.getElementById('leaveApprovalModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+    
+        // Create modal
+        const modal = document.createElement('div');
+        modal.id = 'leaveApprovalModal';
+        modal.className = 'modal-overlay';
         
-        // Create a loading state
-        const originalText = buttonElement.innerHTML;
-        buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Approving...';
-        buttonElement.disabled = true;
+        // Helper to render approval status
+        const renderApprovalStatus = (approved, type) => {
+            if (approved) {
+                return `
+                    <div class="approval-status approved">
+                        <i class="fas fa-check-circle"></i>
+                        <span>${type} Approved</span>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="approval-status pending">
+                        <i class="fas fa-clock"></i>
+                        <span>${type} Pending</span>
+                    </div>
+                `;
+            }
+        };
+    
+        // Check if HOD approval is already done
+        const hodApproved = leave.hodApproval === true;
+        const canApproveHOD = !hodApproved;
+    
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Leave Approval Details</h3>
+                    <button class="modal-close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <!-- Staff Information -->
+                    <div class="modal-section">
+                        <h4>Staff Information</h4>
+                        <div class="staff-info">
+                            <div class="staff-avatar">${getInitials(member.fullName)}</div>
+                            <div class="staff-details">
+                                <h5>${member.fullName}</h5>
+                                <p>${member.jobTitle || 'Employee'}</p>
+                                <p class="employee-id-modal">${leave.employeeId}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Leave Details -->
+                    <div class="modal-section">
+                        <h4>Leave Details</h4>
+                        <div class="leave-details-grid">
+                            <div class="detail-item">
+                                <strong>Leave Type</strong>
+                                <span>${leave.leaveType || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Period</strong>
+                                <span>${leave.startDate} to ${leave.endDate}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Days</strong>
+                                <span>${leave.leaveDays || leave.daysRequested || '-'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Status</strong>
+                                <span class="status-badge ${leave.status === 'Approved' ? 'status-active' : leave.status === 'Rejected' ? 'status-inactive' : 'status-pending'}">
+                                    ${leave.status || 'Pending'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Approval Status -->
+                    <div class="modal-section">
+                        <h4>Approval Status</h4>
+                        <div class="approval-status-grid">
+                            ${renderApprovalStatus(leave.hodApproval, 'HOD')}
+                            ${renderApprovalStatus(leave.hrApproval, 'HR')}
+                            ${renderApprovalStatus(leave.ceoApproval, 'CEO')}
+                        </div>
+                    </div>
+                    
+                    <!-- HOD Approval Action (only if not already approved) -->
+                    ${canApproveHOD ? `
+                    <div class="modal-section">
+                        <h4>HOD Action</h4>
+                        <div class="hod-approval-section">
+                            <p class="approval-note">As the Head of Department, you can approve this leave request.</p>
+                            <div class="approval-actions">
+                                <button class="approve-btn hod-approve" data-leave-id="${leave.id || leave.employeeId}">
+                                    <i class="fas fa-thumbs-up"></i>
+                                    Approve Leave
+                                </button>
+                                <button class="reject-btn hod-reject" data-leave-id="${leave.id || leave.employeeId}">
+                                    <i class="fas fa-thumbs-down"></i>
+                                    Reject Leave
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    ` : `
+                    <div class="modal-section">
+                        <div class="already-approved">
+                            <i class="fas fa-check-circle"></i>
+                            <p>HOD approval has already been granted for this leave request.</p>
+                        </div>
+                    </div>
+                    `}
+                </div>
+            </div>
+        `;
+    
+        document.body.appendChild(modal);
+    
+        // Add event listeners
+        modal.querySelector('.modal-close-btn').addEventListener('click', () => {
+            modal.remove();
+        });
+    
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+    
+        // Add HOD approval button listener
+        if (canApproveHOD) {
+            modal.querySelector('.hod-approve').addEventListener('click', function() {
+                const leaveId = this.getAttribute('data-leave-id');
+                approveHODLeave(leaveId, true); // true = approve
+            });
+    
+            modal.querySelector('.hod-reject').addEventListener('click', function() {
+                const leaveId = this.getAttribute('data-leave-id');
+                approveHODLeave(leaveId, false); // false = reject
+            });
+        }
+    }
+    
+    // Function to handle HOD approval (will call real backend)
+    async function approveHODLeave(leaveId, approve) {
+        try {
+            // Show loading state
+            const modal = document.getElementById('leaveApprovalModal');
+            const actionSection = modal.querySelector('.hod-approval-section');
+            const originalHTML = actionSection.innerHTML;
+            
+            actionSection.innerHTML = `
+                <div class="loading-approval">
+                    <div class="spinner-small"></div>
+                    <p>${approve ? 'Approving' : 'Rejecting'} leave request...</p>
+                </div>
+            `;
+    
+            // Call backend API (to be implemented)
+            const response = await fetch(`${API_BASE}/approve-leave`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    leaveId: leaveId,
+                    action: approve ? 'approve' : 'reject',
+                    approvalType: 'hod'
+                })
+            });
+    
+            const data = await response.json();
+    
+            if (data.success) {
+                // Show success message
+                actionSection.innerHTML = `
+                    <div class="approval-success">
+                        <i class="fas fa-check-circle"></i>
+                        <p>Leave ${approve ? 'approved' : 'rejected'} successfully!</p>
+                        <button class="modal-close-btn secondary" onclick="closeModalAndRefresh()">
+                            Close & Refresh
+                        </button>
+                    </div>
+                `;
+            } else {
+                // Show error message
+                actionSection.innerHTML = `
+                    <div class="approval-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Failed to process approval: ${data.message || 'Unknown error'}</p>
+                        <button class="modal-close-btn secondary" onclick="location.reload()">
+                            Retry
+                        </button>
+                    </div>
+                `;
+            }
+    
+        } catch (error) {
+            console.error('Approval error:', error);
+            const modal = document.getElementById('leaveApprovalModal');
+            const actionSection = modal.querySelector('.hod-approval-section');
+            
+            actionSection.innerHTML = `
+                <div class="approval-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Network error: ${error.message}</p>
+                    <button class="modal-close-btn secondary" onclick="location.reload()">
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
+    }
+    
+    // Helper function to close modal and refresh data
+    function closeModalAndRefresh() {
+        const modal = document.getElementById('leaveApprovalModal');
+        if (modal) modal.remove();
         
-        // Simulate API call (will be replaced with real backend later)
-        setTimeout(() => {
-            // Update the button to show approved status
-            buttonElement.innerHTML = '<i class="fas fa-check-circle"></i> Approved';
-            buttonElement.className = 'status-badge status-active';
-            buttonElement.removeAttribute('data-leave-id');
-            buttonElement.removeAttribute('data-approval-type');
-            buttonElement.onclick = null;
-            
-            // Show success message
-            alert(`${approvalType.toUpperCase()} approval granted successfully!`);
-            
-            // Note: In the real implementation, we'll need to:
-            // 1. Make a POST request to update the backend
-            // 2. Refresh the leave data
-            // 3. Update the UI accordingly
-            
-        }, 1000);
+        // Refresh team data
+        initializePage();
     }
 
     
