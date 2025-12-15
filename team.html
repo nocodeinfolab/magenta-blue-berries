@@ -1540,6 +1540,42 @@
             background: #2980b9;
             transform: translateY(-2px);
         }
+        /* Compact leave balance card */
+        .leave-balance-card {
+            padding: 16px 20px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        .leave-balance-header {
+            margin-bottom: 12px !important;
+        }
+        
+        .leave-balance-header h5 {
+            font-size: 15px !important;
+        }
+        
+        .leave-balance-stats {
+            gap: 12px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        .balance-stat {
+            padding: 12px 8px !important;
+        }
+        
+        .balance-label {
+            font-size: 11px !important;
+            margin-bottom: 6px !important;
+        }
+        
+        .balance-value {
+            font-size: 20px !important;
+        }
+        
+        .balance-note {
+            font-size: 12px !important;
+            padding: 6px !important;
+        }
 
 
     </style>
@@ -1993,8 +2029,8 @@
                 balanceNote.textContent = 'Showing balance for all staff';
                 
                 // Calculate average or show N/A
-                document.getElementById('usedDays').textContent = 'N/A';
-                document.getElementById('remainingDays').textContent = 'N/A';
+                document.getElementById('usedDays').textContent = '';
+                document.getElementById('remainingDays').textContent = '';
                 
                 balanceCard.classList.remove('staff-specific');
             } else {
