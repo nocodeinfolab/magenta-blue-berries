@@ -399,7 +399,7 @@
             box-shadow: var(--shadow);
             overflow: hidden;
             margin-bottom: 40px;
-            transition: all 0.3s ease;
+            transition: none;
         }
 
         .team-table-container:hover {
@@ -438,12 +438,14 @@
 
         .team-table tbody tr {
             border-bottom: 1px solid var(--table-border);
-            transition: all 0.2s ease;
+            transition: none;
+        }
+        
+        .team-table tbody tr:hover {
+            background: inherit;
+            transform: none;
         }
 
-        .team-table tbody tr:last-child {
-            border-bottom: none;
-        }
 
         .team-table tbody tr:hover {
             background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%);
@@ -1470,9 +1472,10 @@
         
         /* Active row highlighting */
         .leave-row:hover {
-            background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%) !important;
-            transform: translateX(4px);
+            background: inherit !important;
+            transform: none;
         }
+
         
         /* Responsive filter */
         @media (max-width: 992px) {
@@ -1566,6 +1569,11 @@
             font-size: 12px !important;
             padding: 6px !important;
         }
+        .team-table * {
+            transition: none !important;
+            animation: none !important;
+        }
+
 
 
    
