@@ -1197,6 +1197,7 @@
             }
         }
         /* Filter Section */
+        
         .filter-section {
             background: white;
             border-radius: var(--radius);
@@ -1213,7 +1214,7 @@
         .filter-container {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 20px;
         }
         
         .filter-header {
@@ -1291,6 +1292,11 @@
             border-color: var(--gray);
         }
         
+        .filter-actions {
+            display: flex;
+            align-items: center;
+        }
+        
         .filter-clear-btn {
             display: flex;
             align-items: center;
@@ -1305,6 +1311,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
             white-space: nowrap;
+            height: 44px;
         }
         
         .filter-clear-btn:hover {
@@ -1318,47 +1325,151 @@
             font-size: 12px;
         }
         
-        /* Status colors for filter */
-        .option-status {
+        /* Leave Balance Card */
+        .leave-balance-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 2px solid var(--table-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .leave-balance-card.staff-specific {
+            background: linear-gradient(135deg, #e8f4fd 0%, #d9ecfc 100%);
+            border-color: var(--secondary);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.1);
+        }
+        
+        .leave-balance-header {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            margin-bottom: 16px;
         }
         
-        .option-status::before {
-            content: '';
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
+        .leave-balance-header i {
+            font-size: 20px;
+            color: var(--secondary);
         }
         
-        .option-status.pending::before {
-            background: #f39c12;
+        .leave-balance-header h5 {
+            color: var(--dark);
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
         }
         
-        .option-status.approved::before {
-            background: #27ae60;
+        .leave-balance-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 12px;
         }
         
-        .option-status.rejected::before {
-            background: #e74c3c;
+        .balance-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px;
+            background: white;
+            border-radius: var(--radius-sm);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
         
-        /* Active filter indicator */
-        .filter-active {
-            position: relative;
+        .balance-label {
+            color: var(--gray);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
         
-        .filter-active::after {
-            content: '';
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            width: 8px;
-            height: 8px;
-            background: var(--accent);
-            border-radius: 50%;
-            border: 2px solid white;
+        .balance-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        
+        .balance-value.total-allowed {
+            color: #3498db;
+        }
+        
+        .balance-value.used-days {
+            color: #f39c12;
+        }
+        
+        .balance-value.remaining-days {
+            color: #27ae60;
+        }
+        
+        .balance-value.remaining-days.exceeded {
+            color: #e74c3c;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .balance-note {
+            color: var(--gray);
+            font-size: 13px;
+            font-weight: 400;
+            text-align: center;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: var(--radius-sm);
+        }
+        
+        /* Leave Type Badges */
+        .leave-type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .leave-type-badge.annual {
+            background: rgba(52, 152, 219, 0.1);
+            color: #2980b9;
+        }
+        
+        .leave-type-badge.sick {
+            background: rgba(231, 76, 60, 0.1);
+            color: #c0392b;
+        }
+        
+        .leave-type-badge.casual {
+            background: rgba(155, 89, 182, 0.1);
+            color: #8e44ad;
+        }
+        
+        .leave-type-badge.maternity,
+        .leave-type-badge.paternity {
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+        }
+        
+        .leave-type-badge.other,
+        .leave-type-badge.unpaid {
+            background: rgba(149, 165, 166, 0.1);
+            color: #7f8c8d;
+        }
+        
+        .leave-days-count {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .leave-days-count.annual-leave {
+            color: #2980b9;
+            font-weight: 700;
         }
         
         /* Status badges */
@@ -1367,7 +1478,38 @@
             color: #f39c12;
         }
         
+        /* Active row highlighting */
+        .leave-row:hover {
+            background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%) !important;
+            transform: translateX(4px);
+        }
+        
         /* Responsive filter */
+        @media (max-width: 992px) {
+            .filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                min-width: 100%;
+            }
+            
+            .filter-actions {
+                justify-content: center;
+            }
+            
+            .filter-clear-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .leave-balance-stats {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+        }
+        
         @media (max-width: 768px) {
             .filter-section {
                 padding: 20px;
@@ -1379,41 +1521,9 @@
                 gap: 8px;
             }
             
-            .filter-controls {
-                flex-direction: column;
-                align-items: stretch;
+            .balance-value {
+                font-size: 20px;
             }
-            
-            .filter-group {
-                min-width: 100%;
-            }
-            
-            .filter-clear-btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-        
-        /* Active row highlighting */
-        .leave-row:hover {
-            background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%) !important;
-            transform: translateX(4px);
-        }
-        
-        /* Status filter highlighting */
-        .filter-select option[value="pending"] {
-            color: #f39c12;
-            font-weight: 500;
-        }
-        
-        .filter-select option[value="approved"] {
-            color: #27ae60;
-            font-weight: 500;
-        }
-        
-        .filter-select option[value="rejected"] {
-            color: #e74c3c;
-            font-weight: 500;
         }
         
         /* Empty state with filter */
@@ -1757,13 +1867,70 @@
         // Create filter section
         const filterSection = document.createElement('div');
         filterSection.className = 'filter-section';
+        
+        // Create unique staff list for dropdown
+        const staffList = [];
+        const staffMap = {};
+        
+        team.forEach(member => {
+            if (member.employeeId && !staffMap[member.employeeId]) {
+                staffList.push({
+                    employeeId: member.employeeId,
+                    fullName: member.fullName,
+                    jobTitle: member.jobTitle
+                });
+                staffMap[member.employeeId] = true;
+            }
+        });
+        
+        // Sort staff alphabetically by name
+        staffList.sort((a, b) => a.fullName.localeCompare(b.fullName));
+    
         filterSection.innerHTML = `
             <div class="filter-container">
                 <div class="filter-header">
                     <h4>Filter Leaves</h4>
                     <span class="filter-count" id="filterCount">Showing ${teamLeaves.length} records</span>
                 </div>
+                
+                <!-- Leave Balance Display -->
+                <div class="leave-balance-card" id="leaveBalanceCard">
+                    <div class="leave-balance-header">
+                        <i class="fas fa-calendar-check"></i>
+                        <h5>Annual Leave Balance</h5>
+                    </div>
+                    <div class="leave-balance-stats" id="leaveBalanceStats">
+                        <div class="balance-stat">
+                            <span class="balance-label">Total Allowed</span>
+                            <span class="balance-value total-allowed">24</span>
+                        </div>
+                        <div class="balance-stat">
+                            <span class="balance-label">Used</span>
+                            <span class="balance-value used-days" id="usedDays">0</span>
+                        </div>
+                        <div class="balance-stat">
+                            <span class="balance-label">Remaining</span>
+                            <span class="balance-value remaining-days" id="remainingDays">24</span>
+                        </div>
+                    </div>
+                    <div class="balance-note" id="balanceNote">
+                        Showing balance for all staff
+                    </div>
+                </div>
+                
                 <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="staffFilter">Staff Member</label>
+                        <select id="staffFilter" class="filter-select">
+                            <option value="all">All Team Members</option>
+                            ${staffList.map(staff => `
+                                <option value="${staff.employeeId}">
+                                    ${staff.fullName} (${staff.jobTitle || 'Employee'})
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    
                     <div class="filter-group">
                         <label for="statusFilter">Status</label>
                         <select id="statusFilter" class="filter-select">
@@ -1773,10 +1940,13 @@
                             <option value="rejected">Rejected</option>
                         </select>
                     </div>
-                    <button class="filter-clear-btn" id="clearFilters">
-                        <i class="fas fa-times"></i>
-                        Clear Filters
-                    </button>
+                    
+                    <div class="filter-actions">
+                        <button class="filter-clear-btn" id="clearFilters">
+                            <i class="fas fa-times"></i>
+                            Clear Filters
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -1785,17 +1955,89 @@
     
         // Store original leaves for filtering
         let allLeaves = [...teamLeaves];
-        let currentFilter = 'all';
+        let currentStaffFilter = 'all';
+        let currentStatusFilter = 'all';
+        let selectedStaffId = null;
+    
+        // Function to calculate leave balance for a specific staff member
+        function calculateLeaveBalance(staffEmployeeId, leavesToCheck) {
+            const ANNUAL_LEAVE_DAYS = 24;
+            
+            // Filter approved annual leaves for the staff member
+            const approvedAnnualLeaves = leavesToCheck.filter(leave => {
+                return leave.employeeId === staffEmployeeId &&
+                       (leave.status || '').toLowerCase() === 'approved' &&
+                       (leave.leaveType || '').toLowerCase() === 'annual';
+            });
+            
+            // Calculate total used days
+            const totalUsedDays = approvedAnnualLeaves.reduce((total, leave) => {
+                return total + (Number(leave.leaveDays) || Number(leave.daysRequested) || 0);
+            }, 0);
+            
+            const remainingDays = ANNUAL_LEAVE_DAYS - totalUsedDays;
+            
+            return {
+                used: totalUsedDays,
+                remaining: remainingDays > 0 ? remainingDays : 0,
+                exceeded: remainingDays < 0
+            };
+        }
+    
+        // Function to update leave balance display
+        function updateLeaveBalanceDisplay(staffEmployeeId, leavesToCheck) {
+            const balanceCard = document.getElementById('leaveBalanceCard');
+            const balanceStats = document.getElementById('leaveBalanceStats');
+            const balanceNote = document.getElementById('balanceNote');
+            
+            if (staffEmployeeId === 'all') {
+                // Show overall balance message
+                const staffMember = team.find(m => m.employeeId === staffEmployeeId);
+                balanceNote.textContent = 'Showing balance for all staff';
+                
+                // Calculate average or show N/A
+                document.getElementById('usedDays').textContent = 'N/A';
+                document.getElementById('remainingDays').textContent = 'N/A';
+                
+                balanceCard.classList.remove('staff-specific');
+            } else {
+                // Calculate and display specific staff balance
+                const staffMember = team.find(m => m.employeeId === staffEmployeeId);
+                const balance = calculateLeaveBalance(staffEmployeeId, leavesToCheck);
+                
+                document.getElementById('usedDays').textContent = balance.used;
+                document.getElementById('remainingDays').textContent = balance.remaining;
+                
+                // Update note with staff name
+                balanceNote.textContent = `Balance for ${staffMember?.fullName || 'Selected Staff'}`;
+                
+                // Highlight if exceeded
+                if (balance.exceeded) {
+                    document.getElementById('remainingDays').classList.add('exceeded');
+                } else {
+                    document.getElementById('remainingDays').classList.remove('exceeded');
+                }
+                
+                balanceCard.classList.add('staff-specific');
+            }
+        }
     
         // Function to filter and render table
         function filterAndRenderTable() {
             let filteredLeaves = allLeaves;
             
+            // Apply staff filter
+            if (currentStaffFilter !== 'all') {
+                filteredLeaves = filteredLeaves.filter(leave => 
+                    leave.employeeId === currentStaffFilter
+                );
+            }
+            
             // Apply status filter
-            if (currentFilter !== 'all') {
-                filteredLeaves = allLeaves.filter(leave => {
+            if (currentStatusFilter !== 'all') {
+                filteredLeaves = filteredLeaves.filter(leave => {
                     const status = (leave.status || '').toLowerCase();
-                    return status === currentFilter;
+                    return status === currentStatusFilter;
                 });
             }
             
@@ -1803,6 +2045,9 @@
             
             // Update filter count
             document.getElementById('filterCount').textContent = `Showing ${filteredLeaves.length} records`;
+            
+            // Update leave balance display
+            updateLeaveBalanceDisplay(currentStaffFilter, allLeaves);
             
             // Remove existing table if it exists
             const existingTable = document.querySelector('.team-table-container');
@@ -1836,8 +2081,10 @@
                 // Add event listener to clear filter button
                 setTimeout(() => {
                     document.getElementById('clearFilterBtn').addEventListener('click', () => {
+                        document.getElementById('staffFilter').value = 'all';
                         document.getElementById('statusFilter').value = 'all';
-                        currentFilter = 'all';
+                        currentStaffFilter = 'all';
+                        currentStatusFilter = 'all';
                         filterAndRenderTable();
                     });
                 }, 100);
@@ -1902,7 +2149,9 @@
                                             <span class="employee-id">${leave.employeeId}</span>
                                         </td>
                                         <td>
-                                            ${leave.leaveType || "N/A"}
+                                            <span class="leave-type-badge ${(leave.leaveType || '').toLowerCase().replace(/\s+/g, '-')}">
+                                                ${leave.leaveType || "N/A"}
+                                            </span>
                                         </td>
                                         <td>
                                             <div class="leave-period">
@@ -1912,7 +2161,9 @@
                                             </div>
                                         </td>
                                         <td>
-                                            ${leave.leaveDays ?? "-"}
+                                            <span class="leave-days-count ${(leave.leaveType || '').toLowerCase() === 'annual' ? 'annual-leave' : ''}">
+                                                ${leave.leaveDays ?? "-"}
+                                            </span>
                                         </td>
                                         <td>
                                             <span class="status-badge ${statusClass}">
@@ -1949,18 +2200,24 @@
         filterAndRenderTable();
     
         // Add event listeners for filter controls
+        document.getElementById('staffFilter').addEventListener('change', function() {
+            currentStaffFilter = this.value;
+            filterAndRenderTable();
+        });
+    
         document.getElementById('statusFilter').addEventListener('change', function() {
-            currentFilter = this.value;
+            currentStatusFilter = this.value;
             filterAndRenderTable();
         });
     
         document.getElementById('clearFilters').addEventListener('click', function() {
+            document.getElementById('staffFilter').value = 'all';
             document.getElementById('statusFilter').value = 'all';
-            currentFilter = 'all';
+            currentStaffFilter = 'all';
+            currentStatusFilter = 'all';
             filterAndRenderTable();
         });
     }
-
     
     // Create and show approval modal
     function showLeaveApprovalModal(leave, member) {
