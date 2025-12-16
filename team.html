@@ -125,6 +125,20 @@
                         <p>Manager</p>
                     </div>
                 </div>
+                <button
+                    id="logoutBtn"
+                    class="btn"
+                    style="
+                        width: 100%;
+                        margin-top: 12px;
+                        background: rgba(231, 76, 60, 0.15);
+                        color: #e74c3c;
+                        justify-content: center;
+                    "
+                >
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
             </div>
         </aside>
         
@@ -1701,6 +1715,39 @@
        PAGE LOAD
     ========================================================= */
     document.addEventListener("DOMContentLoaded", initializePage);
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", async () => {
+            const originalHTML = logoutBtn.innerHTML;
+    
+            logoutBtn.disabled = true;
+            logoutBtn.innerHTML =
+                `<i class="fas fa-spinner fa-spin"></i> Logging out...`;
+    
+            try {
+                const res = await fetch(`${API_BASE}/logout`, {
+                    method: "POST",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" }
+                });
+    
+                if (!res.ok) {
+                    throw new Error("Logout failed");
+                }
+    
+                // Redirect to login page
+                window.location.href = "index.html";
+            } catch (err) {
+                console.error(err);
+                showError("Unable to logout. Please try again.");
+    
+                logoutBtn.disabled = false;
+                logoutBtn.innerHTML = originalHTML;
+            }
+        });
+    }
+
     
     // Refresh data every 30 seconds (optional)
     // setInterval(initializePage, 30000);
