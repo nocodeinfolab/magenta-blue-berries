@@ -426,6 +426,17 @@
             pageSubtitle.textContent = "You don't have permission to view this page";
             
             // Clear existing content
+            const isHr = isHRManager(userJobTitle);
+            const isCeo = isCEO(userJobTitle);
+            
+            const pendingSubtitle = isCeo
+                ? "Leaves approved by HR awaiting final approval"
+                : "Leaves approved by HOD awaiting HR approval";
+            
+            const approvedSubtitle = isCeo
+                ? "Leaves fully approved by HR and CEO"
+                : "Leaves approved by HOD and HR";
+
             document.querySelector(".main-content").innerHTML = `
                 <div class="access-denied-message">
                     <div class="denied-icon">
@@ -499,8 +510,9 @@
                             <span class="status-group-count">${pendingLeaves.length}</span>
                         </div>
                         <div class="status-subtitle">
-                            Leaves pending HR/CEO approval
+                            ${pendingSubtitle}
                         </div>
+
                     </div>
                     ${renderLeavesTable(pendingLeaves, 'pending')}
                 </div>
@@ -513,8 +525,9 @@
                             <span class="status-group-count">${approvedLeaves.length}</span>
                         </div>
                         <div class="status-subtitle">
-                            Leaves approved by HOD and HR/CEO
+                            ${approvedSubtitle}
                         </div>
+
                     </div>
                     ${renderLeavesTable(approvedLeaves, 'approved')}
                 </div>
@@ -657,6 +670,9 @@
         // Check if current user can approve (HR Manager or CEO)
         const canApprove = hasAllStaffLeavesPermission(userJobTitle) && 
                           (leave.status || '').toLowerCase() === 'pending';
+        const isHr = isHRManager(userJobTitle);
+        const isCeo = isCEO(userJobTitle);
+
         
         modal.innerHTML = `
             <div class="modal-content">
@@ -735,14 +751,22 @@
                     <!-- Approval Action (only if pending and user has permission) -->
                     ${canApprove ? `
                     <div class="modal-section">
-                        <h4>${userJobTitle.includes('HR') ? 'HR' : 'CEO'} Action</h4>
+                        <h4>${isHr ? 'HR' : 'CEO'} Action</h4>
                         <div class="approval-action-section">
-                            <p class="approval-note">This leave has been approved by HOD. You can now provide ${userJobTitle.includes('HR') ? 'HR' : 'CEO'} approval.</p>
+                            <p class="approval-note">
+                                ${
+                                    isHr
+                                        ? "This leave has been approved by HOD. You can now provide HR approval."
+                                        : "This leave has been approved by HR. You can now provide final CEO approval."
+                                }
+                            </p>
+
                             <div class="approval-actions">
-                                <button class="approve-btn final-approve" data-leave-id="${leave.id || leave.employeeId}">
+                                <button class="approve-btn final-approve">
                                     <i class="fas fa-thumbs-up"></i>
-                                    ${userJobTitle.includes('HR') ? 'HR Approve' : 'CEO Approve'}
+                                    ${isHr ? 'HR Approve' : 'CEO Approve'}
                                 </button>
+
                                 <button class="reject-btn final-reject" data-leave-id="${leave.id || leave.employeeId}">
                                     <i class="fas fa-thumbs-down"></i>
                                     Reject
