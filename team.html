@@ -72,6 +72,14 @@
             color: #ff9800;
             margin-bottom: 20px;
         }
+        .leave-row {
+            cursor: pointer;
+            transition: none;
+        }
+        
+        .leave-row:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
     </style>
 </head>
 <body>
@@ -451,14 +459,14 @@
         
         // Update header
         pageTitle.textContent = "All Staff Leaves";
-        pageSubtitle.textContent = "Leaves with HOD Approval (CEO/HR View)";
+        pageSubtitle.textContent = "View and manage all staff leave requests";
         
         // Clear existing content
         document.querySelector(".main-content").innerHTML = `
             <div class="header">
                 <div class="header-left">
                     <h2 id="pageTitle">All Staff Leaves</h2>
-                    <p id="pageSubtitle">Leaves with HOD Approval (CEO/HR View)</p>
+                    <p id="pageSubtitle">View and manage all staff leave requests</p>
                 </div>
             </div>
             
@@ -547,9 +555,6 @@
                             <th>Department</th>
                             <th>Leave Type</th>
                             <th>Period</th>
-                            <th>Days</th>
-                            <th>Status</th>
-                            <th>HOD Approved</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -572,16 +577,6 @@
                             }
                             
                             const initials = getInitials(member.fullName);
-                            const statusText = leave.status || "Pending";
-                            const normalizedStatus = statusText.toLowerCase();
-                            
-                            const statusClass = normalizedStatus === "approved" ? "status-active" :
-                                              normalizedStatus === "rejected" ? "status-inactive" : 
-                                              "status-pending";
-                            
-                            const statusIcon = normalizedStatus === "approved" ? "fas fa-circle-check" :
-                                             normalizedStatus === "rejected" ? "fas fa-times-circle" : 
-                                             "fas fa-clock";
                             
                             return `
                                 <tr class="leave-row" 
@@ -615,23 +610,6 @@
                                             <span class="leave-date end">${leave.endDate}</span>
                                         </div>
                                     </td>
-                                    <td>
-                                        <span class="leave-days-count">
-                                            ${leave.leaveDays || leave.daysRequested || "-"}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge ${statusClass}">
-                                            <i class="${statusIcon}"></i>
-                                            ${statusText}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge status-active">
-                                            <i class="fas fa-check-circle"></i>
-                                            Approved
-                                        </span>
-                                    </td>
                                 </tr>
                             `;
                         }).join("")}
@@ -660,7 +638,7 @@
         modal.innerHTML = `
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>Leave Details (All Staff View)</h3>
+                    <h3>Leave Details</h3>
                     <button class="modal-close-btn">
                         <i class="fas fa-times"></i>
                     </button>
