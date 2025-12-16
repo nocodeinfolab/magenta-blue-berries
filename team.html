@@ -265,6 +265,15 @@
         errorMessage.classList.remove("hidden");
         setTimeout(() => errorMessage.classList.add("hidden"), 5000);
     }
+    function isHRManager(jobTitle) {
+        if (!jobTitle) return false;
+        return jobTitle.trim() === "Human Resource Manager";
+    }
+    
+    function isCEO(jobTitle) {
+        if (!jobTitle) return false;
+        return jobTitle.trim() === "Chief Executive Officer";
+    }
     
     function getInitials(name) {
         if (!name || name === "Loading...") return "--";
