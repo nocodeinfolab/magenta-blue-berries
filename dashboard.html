@@ -1288,6 +1288,7 @@
     let leaveHistoryLoaded = false;
     let fullYearLeaveRecords = []; // Single source of truth for leave data
     let currentCalendarDate = new Date();
+    let approvedAnnualLeaveUsed = 0;
     
     /* =========================================================
        UTILITY HELPERS
@@ -1374,8 +1375,7 @@
        UPDATE ALL LEAVE BALANCE UI ELEMENTS
     ========================================================= */
     function updateLeaveBalanceUI() {
-        const usage = calculateAnnualLeaveUsage();
-        const remaining = MAX_ANNUAL_LEAVE - usage.approved;
+        const remaining = MAX_ANNUAL_LEAVE - approvedAnnualLeaveUsed;
         
         // Update calendar tab
         if (remainingLeaveDaysLabel) {
@@ -1384,10 +1384,11 @@
         
         // Update modal
         if (modalApprovedUsed && modalRemainingLeave) {
-            modalApprovedUsed.textContent = usage.approved;
+            modalApprovedUsed.textContent = approvedAnnualLeaveUsed;
             modalRemainingLeave.textContent = remaining;
         }
     }
+
     
     /* =========================================================
        LOAD LEAVE CALENDAR DATA (SINGLE SOURCE OF TRUTH)
@@ -1407,10 +1408,15 @@
             // Update the single source of truth
             fullYearLeaveRecords = data.records || [];
             
-            // Update all UI elements that show leave balance
+            // Calculate approved annual leave for current user (ORIGINAL LOGIC)
+            approvedAnnualLeaveUsed = fullYearLeaveRecords
+                .filter(r => r.leaveType === "Annual" && r.employeeId == userData.employeeId)
+                .reduce((sum, r) => sum + (r.daysRequested || 0), 0);
+            
+            // Update all UI elements
             updateLeaveBalanceUI();
             
-            // Only render calendar if requested (for calendar tab)
+            // Only render calendar if requested
             if (refreshCalendar && calendarGrid) {
                 renderCalendar();
             }
@@ -1691,13 +1697,12 @@
     
         const requestedDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
     
-        // Calculate current annual leave usage from our single source
+        // Use the approvedAnnualLeaveUsed variable
         if (leaveTypeSelect.value === "Annual") {
-            const usage = calculateAnnualLeaveUsage();
-            const totalAfterRequest = usage.approved + requestedDays;
+            const totalAfterRequest = approvedAnnualLeaveUsed + requestedDays;
     
             if (totalAfterRequest > MAX_ANNUAL_LEAVE) {
-                const allowedRemaining = MAX_ANNUAL_LEAVE - usage.approved;
+                const allowedRemaining = MAX_ANNUAL_LEAVE - approvedAnnualLeaveUsed;
     
                 leaveDaysInput.value = Math.max(allowedRemaining, 0);
     
