@@ -1280,13 +1280,14 @@
     const modalApprovedUsed = document.getElementById("modalApprovedUsed");
     const modalRemainingLeave = document.getElementById("modalRemainingLeave");
     const submitLeaveBtn = leaveForm.querySelector("button[type='submit']");
+    const modalAnnualLeaveInfo = document.querySelector('.card[style*="padding:14px;margin-bottom:20px;background:#f8f9fb;"]');
     
     /* =========================================================
        GLOBAL VARIABLES
     ========================================================= */
     let userData = null;
     let leaveHistoryLoaded = false;
-    let fullYearLeaveRecords = []; // Single source of truth for leave data
+    let fullYearLeaveRecords = [];
     let currentCalendarDate = new Date();
     let approvedAnnualLeaveUsed = 0;
     
@@ -1332,46 +1333,6 @@
     }
     
     /* =========================================================
-       CALCULATE ANNUAL LEAVE FROM LEAVE RECORDS
-    ========================================================= */
-    function calculateAnnualLeaveUsage() {
-        if (!fullYearLeaveRecords.length || !userData) {
-            return {
-                approved: 0,
-                pending: 0,
-                rejected: 0,
-                totalUsed: 0
-            };
-        }
-        
-        // Filter only Annual leave records for the current user
-        const userAnnualLeaves = fullYearLeaveRecords.filter(record => 
-            record.leaveType === "Annual" && 
-            record.employeeId == userData.employeeId
-        );
-        
-        // Calculate usage by status
-        const approved = userAnnualLeaves
-            .filter(record => record.status === "Approved")
-            .reduce((sum, record) => sum + (record.daysRequested || 0), 0);
-        
-        const pending = userAnnualLeaves
-            .filter(record => record.status === "Pending")
-            .reduce((sum, record) => sum + (record.daysRequested || 0), 0);
-        
-        const rejected = userAnnualLeaves
-            .filter(record => record.status === "Rejected")
-            .reduce((sum, record) => sum + (record.daysRequested || 0), 0);
-        
-        return {
-            approved,
-            pending,
-            rejected,
-            totalUsed: approved + pending
-        };
-    }
-    
-    /* =========================================================
        UPDATE ALL LEAVE BALANCE UI ELEMENTS
     ========================================================= */
     function updateLeaveBalanceUI() {
@@ -1382,13 +1343,27 @@
             remainingLeaveDaysLabel.textContent = remaining;
         }
         
-        // Update modal
+        // Update modal (always update values, visibility handled separately)
         if (modalApprovedUsed && modalRemainingLeave) {
             modalApprovedUsed.textContent = approvedAnnualLeaveUsed;
             modalRemainingLeave.textContent = remaining;
         }
     }
-
+    
+    /* =========================================================
+       TOGGLE MODAL ANNUAL LEAVE INFO VISIBILITY
+    ========================================================= */
+    function toggleAnnualLeaveInfoVisibility() {
+        if (!modalAnnualLeaveInfo) return;
+        
+        const selectedLeaveType = leaveTypeSelect.value;
+        
+        if (selectedLeaveType === "Annual") {
+            modalAnnualLeaveInfo.style.display = "block";
+        } else {
+            modalAnnualLeaveInfo.style.display = "none";
+        }
+    }
     
     /* =========================================================
        LOAD LEAVE CALENDAR DATA (SINGLE SOURCE OF TRUTH)
@@ -1408,7 +1383,7 @@
             // Update the single source of truth
             fullYearLeaveRecords = data.records || [];
             
-            // Calculate approved annual leave for current user (ORIGINAL LOGIC)
+            // Calculate approved annual leave for current user
             approvedAnnualLeaveUsed = fullYearLeaveRecords
                 .filter(r => r.leaveType === "Annual" && r.employeeId == userData.employeeId)
                 .reduce((sum, r) => sum + (r.daysRequested || 0), 0);
@@ -1697,7 +1672,7 @@
     
         const requestedDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
     
-        // Use the approvedAnnualLeaveUsed variable
+        // Use the approvedAnnualLeaveUsed variable only for Annual leave
         if (leaveTypeSelect.value === "Annual") {
             const totalAfterRequest = approvedAnnualLeaveUsed + requestedDays;
     
@@ -1725,6 +1700,11 @@
         // Always refresh data before showing modal
         await loadLeaveCalendarData(false); // false = don't render calendar
         
+        // Show annual leave info by default (Annual is default selection)
+        if (modalAnnualLeaveInfo) {
+            modalAnnualLeaveInfo.style.display = "block";
+        }
+        
         leaveModal.style.display = "flex";
         document.body.style.overflow = "hidden";
     });
@@ -1746,7 +1726,10 @@
     ========================================================= */
     startDateInput.addEventListener("change", calculateDays);
     endDateInput.addEventListener("change", calculateDays);
-    leaveTypeSelect.addEventListener("change", calculateDays);
+    leaveTypeSelect.addEventListener("change", function() {
+        calculateDays();
+        toggleAnnualLeaveInfoVisibility(); // Toggle visibility when leave type changes
+    });
     
     /* =========================================================
        LEAVE FORM SUBMISSION
@@ -1798,6 +1781,12 @@
                 
                 leaveModal.style.display = "none";
                 leaveForm.reset();
+                
+                // Reset leave type to default and show annual info
+                leaveTypeSelect.value = "Annual";
+                if (modalAnnualLeaveInfo) {
+                    modalAnnualLeaveInfo.style.display = "block";
+                }
             }
         } catch (err) {
             showError("Error submitting leave.");
