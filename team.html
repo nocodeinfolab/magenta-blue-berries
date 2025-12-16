@@ -415,28 +415,13 @@
         }
     }
 
-    /* =========================================================
-       NEW: RENDER ALL STAFF LEAVES TAB
-    ========================================================= */
     function renderAllStaffLeaves(allLeaves) {
-        // Check permission first
+
+        // 1️⃣ Permission check
         if (!hasAllStaffLeavesPermission(userJobTitle)) {
-            // Show access denied message
             pageTitle.textContent = "Access Denied";
             pageSubtitle.textContent = "You don't have permission to view this page";
-            
-            // Clear existing content
-            const isHr = isHRManager(userJobTitle);
-            const isCeo = isCEO(userJobTitle);
-            
-            const pendingSubtitle = isCeo
-                ? "Leaves approved by HR awaiting final approval"
-                : "Leaves approved by HOD awaiting HR approval";
-            
-            const approvedSubtitle = isCeo
-                ? "Leaves fully approved by HR and CEO"
-                : "Leaves approved by HOD and HR";
-
+    
             document.querySelector(".main-content").innerHTML = `
                 <div class="access-denied-message">
                     <div class="denied-icon">
@@ -453,120 +438,108 @@
             `;
             return;
         }
-        function isHRManager(jobTitle) {
-            return jobTitle === "Human Resource Manager";
-        }
-        
-        function isCEO(jobTitle) {
-            return jobTitle === "Chief Executive Officer";
-        }
-
-        
-        // Step 1: HOD-approved leaves (base requirement)
+    
+        // 2️⃣ Role flags
+        const isHr = isHRManager(userJobTitle);
+        const isCeo = isCEO(userJobTitle);
+    
+        // 3️⃣ Dynamic subtitles
+        const pendingSubtitle = isCeo
+            ? "Leaves approved by HR awaiting final approval"
+            : "Leaves approved by HOD awaiting HR approval";
+    
+        const approvedSubtitle = isCeo
+            ? "Leaves fully approved by HR and CEO"
+            : "Leaves approved by HOD and HR";
+    
+        // 4️⃣ Filter visible leaves
         let visibleLeaves = allLeaves.filter(leave =>
             leave.hodApproval === true || leave.hodApproval === "true"
         );
-        
-        // Step 2: CEO sees only HR-approved leaves
-        if (isCEO(userJobTitle)) {
+    
+        if (isCeo) {
             visibleLeaves = visibleLeaves.filter(leave =>
                 leave.hrApproval === true || leave.hrApproval === "true"
             );
-        }       
-        // Separate into Approved and Pending groups
-        const approvedLeaves = visibleLeaves.filter(leave =>
-            (leave.status || '').toLowerCase() === 'approved'
-        );
-        
+        }
+    
+        // 5️⃣ Split leaves
         const pendingLeaves = visibleLeaves.filter(leave =>
             (leave.status || '').toLowerCase() === 'pending'
         );
-
-        
-        // Update header
-        // Update header
+    
+        const approvedLeaves = visibleLeaves.filter(leave =>
+            (leave.status || '').toLowerCase() === 'approved'
+        );
+    
+        // 6️⃣ Header
         pageTitle.textContent = "All Staff Leaves";
-        pageSubtitle.textContent = isCEO(userJobTitle)
+        pageSubtitle.textContent = isCeo
             ? "Leaves approved by HR awaiting final approval"
-            : "View and manage all staff leave requests";      
-        // Clear existing content
+            : "View and manage all staff leave requests";
+    
+        // 7️⃣ Render HTML
         document.querySelector(".main-content").innerHTML = `
             <div class="header">
                 <div class="header-left">
                     <h2 id="pageTitle">All Staff Leaves</h2>
-                    <p id="pageSubtitle">View and manage all staff leave requests</p>
+                    <p id="pageSubtitle"></p>
                 </div>
             </div>
-            
-            <div class="error-message hidden" id="errorMessage"></div>
-            
+    
             <div class="staff-table-container">
-                <!-- Pending Leaves Group -->
+    
                 <div class="status-group pending">
                     <div class="status-group-header">
                         <div class="status-group-title">
-                            <i class="fas fa-clock" style="color: #FF9800;"></i>
+                            <i class="fas fa-clock" style="color:#FF9800;"></i>
                             <h3>Pending Approval</h3>
                             <span class="status-group-count">${pendingLeaves.length}</span>
                         </div>
-                        <div class="status-subtitle">
-                            ${pendingSubtitle}
-                        </div>
-
+                        <div class="status-subtitle">${pendingSubtitle}</div>
                     </div>
                     ${renderLeavesTable(pendingLeaves, 'pending')}
                 </div>
-                <!-- Approved Leaves Group -->
+    
                 <div class="status-group approved">
                     <div class="status-group-header">
                         <div class="status-group-title">
-                            <i class="fas fa-check-circle" style="color: #4CAF50;"></i>
+                            <i class="fas fa-check-circle" style="color:#4CAF50;"></i>
                             <h3>Approved Leaves</h3>
                             <span class="status-group-count">${approvedLeaves.length}</span>
                         </div>
-                        <div class="status-subtitle">
-                            ${approvedSubtitle}
-                        </div>
-
+                        <div class="status-subtitle">${approvedSubtitle}</div>
                     </div>
                     ${renderLeavesTable(approvedLeaves, 'approved')}
                 </div>
-                
-                <!-- No Leaves Message -->
+    
                 ${visibleLeaves.length === 0 ? `
                     <div class="empty-table-state">
-                        <div class="empty-icon">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
                         <h3>No Leave Records Found</h3>
                         <p>
-                            ${
-                                isCEO(userJobTitle)
-                                    ? 'There are no leave requests approved by HR yet.'
-                                    : 'There are no leave records that have been approved by HODs yet.'
+                            ${isCeo
+                                ? 'There are no leave requests approved by HR yet.'
+                                : 'There are no leave records that have been approved by HODs yet.'
                             }
                         </p>
                     </div>
                 ` : ''}
-
+    
             </div>
         `;
-        
-        // Re-bind error message element
-        //errorMessage = document.getElementById("errorMessage");
-        
-        // Add click handlers to table rows
+    
         setTimeout(() => {
             document.querySelectorAll('.leave-row').forEach(row => {
-                row.addEventListener('click', function() {
-                    const leaveData = JSON.parse(this.getAttribute('data-leave-data'));
-                    const memberData = JSON.parse(this.getAttribute('data-member-data'));
-                    showAllStaffLeaveModal(leaveData, memberData);
+                row.addEventListener('click', function () {
+                    showAllStaffLeaveModal(
+                        JSON.parse(this.dataset.leaveData),
+                        JSON.parse(this.dataset.memberData)
+                    );
                 });
-                row.style.cursor = 'default';
             });
         }, 100);
     }
+
     
     function renderLeavesTable(leaves, statusType) {
         if (leaves.length === 0) {
