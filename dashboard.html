@@ -1655,31 +1655,24 @@
     }
     
     /* =========================================================
-   CALCULATE DAYS FUNCTION 
+       CALCULATE DAYS FUNCTION
     ========================================================= */
     function calculateDays() {
         enableSubmit();
     
-        if (!startDateInput.value || !endDateInput.value) {
-            leaveDaysInput.value = "1";
-            return;
-        }
+        if (!startDateInput.value || !endDateInput.value) return;
     
         const s = new Date(startDateInput.value);
         const e = new Date(endDateInput.value);
     
-        // Ensure end date is not before start date
         if (e < s) {
             endDateInput.value = startDateInput.value;
-            e = s; // Reset end date to start date
+            return;
         }
     
         const requestedDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
-        
-        // Always update the displayed number of days
-        leaveDaysInput.value = requestedDays;
     
-        // Only validate annual leave limits for Annual leave type
+        // Use the approvedAnnualLeaveUsed variable only for Annual leave
         if (leaveTypeSelect.value === "Annual") {
             const totalAfterRequest = approvedAnnualLeaveUsed + requestedDays;
     
@@ -1693,8 +1686,11 @@
                         ? `You only have ${allowedRemaining} annual leave days remaining.`
                         : "You have exhausted your annual leave for the year."
                 );
+                return;
             }
         }
+    
+        leaveDaysInput.value = requestedDays;
     }
     
     /* =========================================================
