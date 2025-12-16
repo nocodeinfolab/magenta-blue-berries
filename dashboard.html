@@ -1212,7 +1212,8 @@
                 
                 <div class="form-group">
                     <label for="leaveDays">Number of Days</label>
-                    <input type="number" class="form-control" id="leaveDays" min="1" max="24" value="1" required>
+                    <input type="number" class="form-control" id="leaveDays" value="1" readonly>
+
                 </div>
                 
                 <div class="form-group">
@@ -1267,6 +1268,9 @@
     
     let userData = null;
     let leaveHistoryLoaded = false;
+    let approvedAnnualLeaveUsed = 0;
+    const MAX_ANNUAL_LEAVE = 24;
+
     
     /* =========================================================
        UTILITY HELPERS
@@ -1471,12 +1475,13 @@
     
             fullYearLeaveRecords = data.records;
     
-            const totalAnnual = fullYearLeaveRecords
+            approvedAnnualLeaveUsed = fullYearLeaveRecords
                 .filter(r => r.leaveType === "Annual" && r.employeeId == userData.employeeId)
                 .reduce((sum, r) => sum + (r.daysRequested || 0), 0);
-    
-            remainingLeaveDaysLabel.textContent = 24 - totalAnnual;
-    
+            
+            remainingLeaveDaysLabel.textContent =
+                MAX_ANNUAL_LEAVE - approvedAnnualLeaveUsed;
+            
             renderCalendar();
         } catch (err) {
             showError("Unable to load leave calendar.");
@@ -1594,9 +1599,12 @@
        LEAVE FORM + MODAL LOGIC
     ========================================================= */
     applyLeaveBtn.addEventListener("click", () => {
+        leaveDaysInput.value = 1;
+        calculateDays();
         leaveModal.style.display = "flex";
         document.body.style.overflow = "hidden";
     });
+
     
     closeModalBtn.addEventListener("click", () => {
         leaveModal.style.display = "none";
@@ -1613,6 +1621,8 @@
     /* --- Calculate Days --- */
     startDateInput.addEventListener("change", calculateDays);
     endDateInput.addEventListener("change", calculateDays);
+    leaveTypeSelect.addEventListener("change", calculateDays);
+
     
     function calculateDays() {
         if (!startDateInput.value || !endDateInput.value) return;
@@ -1625,9 +1635,41 @@
             return;
         }
     
-        const diff = (e - s) / (1000 * 60 * 60 * 24) + 1;
-        leaveDaysInput.value = diff;
+        const requestedDays =
+            Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+    
+        // Only enforce rule for ANNUAL leave
+        if (leaveTypeSelect.value === "Annual") {
+            const totalAfterRequest =
+                approvedAnnualLeaveUsed + requestedDays;
+    
+            if (totalAfterRequest > MAX_ANNUAL_LEAVE) {
+                const allowedRemaining =
+                    MAX_ANNUAL_LEAVE - approvedAnnualLeaveUsed;
+    
+                if (allowedRemaining <= 0) {
+                    leaveDaysInput.value = 0;
+                    showError("You have exhausted your annual leave for the year.");
+                    return;
+                }
+    
+                // Clamp end date
+                const maxEnd = new Date(s);
+                maxEnd.setDate(maxEnd.getDate() + allowedRemaining - 1);
+    
+                endDateInput.valueAsDate = maxEnd;
+                leaveDaysInput.value = allowedRemaining;
+    
+                showError(
+                    `You only have ${allowedRemaining} annual leave days remaining this year.`
+                );
+                return;
+            }
+        }
+    
+        leaveDaysInput.value = requestedDays;
     }
+
     
     /* --- Submit Leave Form --- */
     leaveForm.addEventListener("submit", async e => {
