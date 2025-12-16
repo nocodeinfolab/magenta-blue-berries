@@ -154,8 +154,33 @@
             <!-- Header -->
             <div class="header">
                 <div class="header-left">
-                    <h2 id="pageTitle">Team Management</h2>
-                    <p id="pageSubtitle">Manage your team members and view their details</p>
+                    <!-- Back button on the left -->
+                    <button 
+                        id="backToDashboardBtn" 
+                        class="back-btn"
+                        style="
+                            margin-right: 16px;
+                            background: #f8f9fa;
+                            border: 1px solid #dee2e6;
+                            border-radius: 6px;
+                            padding: 8px 12px;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 8px;
+                            cursor: pointer;
+                            color: #495057;
+                            font-weight: 500;
+                            transition: all 0.2s ease;
+                        "
+                    >
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Dashboard</span>
+                    </button>
+                    
+                    <div>
+                        <h2 id="pageTitle">Team Management</h2>
+                        <p id="pageSubtitle">Manage your team members and view their details</p>
+                    </div>
                 </div>
             </div>
 
@@ -327,6 +352,16 @@
                     "| Has permission:", hasPermission);
         
         return hasPermission;
+    }
+    /* =========================================================
+       BACK TO DASHBOARD
+    ========================================================= */
+    const backToDashboardBtn = document.getElementById('backToDashboardBtn');
+    
+    if (backToDashboardBtn) {
+        backToDashboardBtn.addEventListener('click', () => {
+            window.location.href = '/dashboard.html';
+        });
     }
     
     /* =========================================================
