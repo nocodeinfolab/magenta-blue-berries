@@ -442,25 +442,42 @@
             `;
             return;
         }
+        function isHRManager(jobTitle) {
+            return jobTitle === "Human Resource Manager";
+        }
         
-        // Filter leaves where HOD Approval is true
-        const hodApprovedLeaves = allLeaves.filter(leave => 
+        function isCEO(jobTitle) {
+            return jobTitle === "Chief Executive Officer";
+        }
+
+        
+        // Step 1: HOD-approved leaves (base requirement)
+        let visibleLeaves = allLeaves.filter(leave =>
             leave.hodApproval === true || leave.hodApproval === "true"
         );
         
+        // Step 2: CEO sees only HR-approved leaves
+        if (isCEO(userJobTitle)) {
+            visibleLeaves = visibleLeaves.filter(leave =>
+                leave.hrApproval === true || leave.hrApproval === "true"
+            );
+        }       
         // Separate into Approved and Pending groups
-        const approvedLeaves = hodApprovedLeaves.filter(leave => 
+        const approvedLeaves = visibleLeaves.filter(leave =>
             (leave.status || '').toLowerCase() === 'approved'
         );
         
-        const pendingLeaves = hodApprovedLeaves.filter(leave => 
+        const pendingLeaves = visibleLeaves.filter(leave =>
             (leave.status || '').toLowerCase() === 'pending'
         );
+
         
         // Update header
+        // Update header
         pageTitle.textContent = "All Staff Leaves";
-        pageSubtitle.textContent = "View and manage all staff leave requests";
-        
+        pageSubtitle.textContent = isCEO(userJobTitle)
+            ? "Leaves approved by HR awaiting final approval"
+            : "View and manage all staff leave requests";      
         // Clear existing content
         document.querySelector(".main-content").innerHTML = `
             <div class="header">
@@ -503,15 +520,22 @@
                 </div>
                 
                 <!-- No Leaves Message -->
-                ${hodApprovedLeaves.length === 0 ? `
-                <div class="empty-table-state">
-                    <div class="empty-icon">
-                        <i class="fas fa-calendar-check"></i>
+                ${visibleLeaves.length === 0 ? `
+                    <div class="empty-table-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <h3>No Leave Records Found</h3>
+                        <p>
+                            ${
+                                isCEO(userJobTitle)
+                                    ? 'There are no leave requests approved by HR yet.'
+                                    : 'There are no leave records that have been approved by HODs yet.'
+                            }
+                        </p>
                     </div>
-                    <h3>No HOD Approved Leaves Found</h3>
-                    <p>There are no leave records that have been approved by HODs yet.</p>
-                </div>
                 ` : ''}
+
             </div>
         `;
         
