@@ -1188,6 +1188,17 @@
                 <h3 id="modalTitle">Apply for Annual Leave</h3>
                 <button class="close-modal" id="closeModal">&times;</button>
             </div>
+            <div class="card" style="padding:14px;margin-bottom:20px;background:#f8f9fb;">
+                <p style="margin:0;font-size:14px;">
+                    <strong>Approved Annual Leave Used:</strong>
+                    <span id="modalApprovedUsed">0</span> days
+                </p>
+                <p style="margin:4px 0 0;font-size:14px;">
+                    <strong>Remaining Annual Leave:</strong>
+                    <span id="modalRemainingLeave">24</span> days
+                </p>
+            </div>
+
             
             <form id="leaveForm">
                 <div class="form-group">
@@ -1265,6 +1276,10 @@
     
     const calendarGrid = document.getElementById("calendarGrid");
     const calendarMonthLabel = document.getElementById("calendarMonthLabel");
+    const modalApprovedUsed = document.getElementById("modalApprovedUsed");
+    const modalRemainingLeave = document.getElementById("modalRemainingLeave");
+    const submitLeaveBtn =
+        leaveForm.querySelector("button[type='submit']");
     
     let userData = null;
     let leaveHistoryLoaded = false;
@@ -1298,6 +1313,20 @@
             day: "numeric"
         });
     }
+    function disableSubmit(reason) {
+        submitLeaveBtn.disabled = true;
+        submitLeaveBtn.style.opacity = "0.6";
+        submitLeaveBtn.style.cursor = "not-allowed";
+    
+        if (reason) showError(reason);
+    }
+    
+    function enableSubmit() {
+        submitLeaveBtn.disabled = false;
+        submitLeaveBtn.style.opacity = "1";
+        submitLeaveBtn.style.cursor = "pointer";
+    }
+
     
     /* =========================================================
        DASHBOARD DATA FETCHER
@@ -1599,12 +1628,15 @@
        LEAVE FORM + MODAL LOGIC
     ========================================================= */
     applyLeaveBtn.addEventListener("click", () => {
-        leaveDaysInput.value = 1;
+        modalApprovedUsed.textContent = approvedAnnualLeaveUsed;
+        modalRemainingLeave.textContent =
+            MAX_ANNUAL_LEAVE - approvedAnnualLeaveUsed;
+    
         calculateDays();
+    
         leaveModal.style.display = "flex";
         document.body.style.overflow = "hidden";
     });
-
     
     closeModalBtn.addEventListener("click", () => {
         leaveModal.style.display = "none";
@@ -1622,9 +1654,10 @@
     startDateInput.addEventListener("change", calculateDays);
     endDateInput.addEventListener("change", calculateDays);
     leaveTypeSelect.addEventListener("change", calculateDays);
-
     
     function calculateDays() {
+        enableSubmit();
+    
         if (!startDateInput.value || !endDateInput.value) return;
     
         const s = new Date(startDateInput.value);
@@ -1638,7 +1671,7 @@
         const requestedDays =
             Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
     
-        // Only enforce rule for ANNUAL leave
+        // Only enforce rule for Annual Leave
         if (leaveTypeSelect.value === "Annual") {
             const totalAfterRequest =
                 approvedAnnualLeaveUsed + requestedDays;
@@ -1647,21 +1680,12 @@
                 const allowedRemaining =
                     MAX_ANNUAL_LEAVE - approvedAnnualLeaveUsed;
     
-                if (allowedRemaining <= 0) {
-                    leaveDaysInput.value = 0;
-                    showError("You have exhausted your annual leave for the year.");
-                    return;
-                }
+                leaveDaysInput.value = Math.max(allowedRemaining, 0);
     
-                // Clamp end date
-                const maxEnd = new Date(s);
-                maxEnd.setDate(maxEnd.getDate() + allowedRemaining - 1);
-    
-                endDateInput.valueAsDate = maxEnd;
-                leaveDaysInput.value = allowedRemaining;
-    
-                showError(
-                    `You only have ${allowedRemaining} annual leave days remaining this year.`
+                disableSubmit(
+                    allowedRemaining > 0
+                        ? `You only have ${allowedRemaining} annual leave days remaining.`
+                        : "You have exhausted your annual leave for the year."
                 );
                 return;
             }
@@ -1669,7 +1693,6 @@
     
         leaveDaysInput.value = requestedDays;
     }
-
     
     /* --- Submit Leave Form --- */
     leaveForm.addEventListener("submit", async e => {
