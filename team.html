@@ -473,21 +473,6 @@
             <div class="error-message hidden" id="errorMessage"></div>
             
             <div class="staff-table-container">
-                <!-- Approved Leaves Group -->
-                <div class="status-group approved">
-                    <div class="status-group-header">
-                        <div class="status-group-title">
-                            <i class="fas fa-check-circle" style="color: #4CAF50;"></i>
-                            <h3>Approved Leaves</h3>
-                            <span class="status-group-count">${approvedLeaves.length}</span>
-                        </div>
-                        <div class="status-subtitle">
-                            Leaves approved by HOD and HR/CEO
-                        </div>
-                    </div>
-                    ${renderLeavesTable(approvedLeaves, 'approved')}
-                </div>
-                
                 <!-- Pending Leaves Group -->
                 <div class="status-group pending">
                     <div class="status-group-header">
@@ -501,6 +486,20 @@
                         </div>
                     </div>
                     ${renderLeavesTable(pendingLeaves, 'pending')}
+                </div>
+                <!-- Approved Leaves Group -->
+                <div class="status-group approved">
+                    <div class="status-group-header">
+                        <div class="status-group-title">
+                            <i class="fas fa-check-circle" style="color: #4CAF50;"></i>
+                            <h3>Approved Leaves</h3>
+                            <span class="status-group-count">${approvedLeaves.length}</span>
+                        </div>
+                        <div class="status-subtitle">
+                            Leaves approved by HOD and HR/CEO
+                        </div>
+                    </div>
+                    ${renderLeavesTable(approvedLeaves, 'approved')}
                 </div>
                 
                 <!-- No Leaves Message -->
