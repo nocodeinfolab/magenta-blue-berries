@@ -80,6 +80,11 @@
         .leave-row:hover {
             background-color: rgba(0, 0, 0, 0.02);
         }
+        .status-group.rejected .status-group-header {
+            background: rgba(244, 67, 54, 0.1);
+            border-left: 4px solid #F44336;
+        }
+
     </style>
 </head>
 <body>
@@ -501,6 +506,11 @@
                 leave.ceoApproval === true || leave.ceoApproval === "true"
             );
         }
+        // 5️⃣b Rejected leaves (visible to BOTH HR and CEO)
+        const rejectedLeaves = visibleLeaves.filter(leave =>
+            (leave.status || '').toLowerCase() === 'rejected'
+        );
+
 
     
         // 6️⃣ Header
@@ -543,6 +553,19 @@
                     </div>
                     ${renderLeavesTable(approvedLeaves, 'approved')}
                 </div>
+                <div class="status-group rejected">
+                    <div class="status-group-header">
+                        <div class="status-group-title">
+                            <i class="fas fa-times-circle" style="color:#F44336;"></i>
+                            <h3>Rejected Leaves</h3>
+                            <span class="status-group-count">${rejectedLeaves.length}</span>
+                        </div>
+                        <div class="status-subtitle">
+                            Leaves that were reviewed and rejected
+                        </div>
+                    </div>
+                    ${renderLeavesTable(rejectedLeaves, 'rejected')}
+                </div>
     
                 ${visibleLeaves.length === 0 ? `
                     <div class="empty-table-state">
@@ -579,8 +602,26 @@
                     <div class="empty-icon">
                         <i class="fas fa-inbox"></i>
                     </div>
-                    <h4>No ${statusType === 'approved' ? 'Approved' : 'Pending'} Leaves</h4>
-                    <p>There are no ${statusType === 'approved' ? 'approved' : 'pending'} leaves at the moment.</p>
+                    <h4>
+                        No ${
+                            statusType === 'approved'
+                                ? 'Approved'
+                                : statusType === 'rejected'
+                                ? 'Rejected'
+                                : 'Pending'
+                        } Leaves
+                    </h4>
+
+                    <p>
+                        There are no ${
+                            statusType === 'approved'
+                                ? 'approved'
+                                : statusType === 'rejected'
+                                ? 'rejected'
+                                : 'pending'
+                        } leave requests at the moment.
+                    </p>
+
                 </div>
             `;
         }
