@@ -1386,7 +1386,8 @@
             // Calculate approved annual leave for current user
             approvedAnnualLeaveUsed = fullYearLeaveRecords
                 .filter(r => r.leaveType === "Annual" && r.employeeId == userData.employeeId)
-                .reduce((sum, r) => sum + (r.daysRequested || 0), 0);
+                .reduce((sum, r) => sum + Number(r.daysRequested || 0), 0);
+
             
             // Update all UI elements
             updateLeaveBalanceUI();
@@ -1658,40 +1659,45 @@
        CALCULATE DAYS FUNCTION
     ========================================================= */
     function calculateDays() {
-        enableSubmit();
-    
-        if (!startDateInput.value || !endDateInput.value) return;
+        if (!startDateInput.value || !endDateInput.value) {
+            leaveDaysInput.value = "";
+            disableSubmit();
+            return;
+        }
     
         const s = new Date(startDateInput.value);
         const e = new Date(endDateInput.value);
     
         if (e < s) {
-            endDateInput.value = startDateInput.value;
+            leaveDaysInput.value = "";
+            disableSubmit("End date cannot be before start date.");
             return;
         }
     
-        const requestedDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+        const requestedDays =
+            Math.floor((e - s) / (1000 * 60 * 60 * 24)) + 1;
     
-        // Use the approvedAnnualLeaveUsed variable only for Annual leave
+        leaveDaysInput.value = requestedDays;
+    
+        // Annual leave validation
         if (leaveTypeSelect.value === "Annual") {
             const totalAfterRequest = approvedAnnualLeaveUsed + requestedDays;
     
             if (totalAfterRequest > MAX_ANNUAL_LEAVE) {
-                const allowedRemaining = MAX_ANNUAL_LEAVE - approvedAnnualLeaveUsed;
-    
-                leaveDaysInput.value = Math.max(allowedRemaining, 0);
+                const remaining = MAX_ANNUAL_LEAVE - approvedAnnualLeaveUsed;
     
                 disableSubmit(
-                    allowedRemaining > 0
-                        ? `You only have ${allowedRemaining} annual leave days remaining.`
+                    remaining > 0
+                        ? `You only have ${remaining} annual leave days remaining.`
                         : "You have exhausted your annual leave for the year."
                 );
                 return;
             }
         }
     
-        leaveDaysInput.value = requestedDays;
+        enableSubmit();
     }
+
     
     /* =========================================================
        MODAL EVENT HANDLERS
