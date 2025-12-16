@@ -473,13 +473,35 @@
         }
     
         // 5️⃣ Split leaves
-        const pendingLeaves = visibleLeaves.filter(leave =>
-            (leave.status || '').toLowerCase() === 'pending'
-        );
-    
-        const approvedLeaves = visibleLeaves.filter(leave =>
-            (leave.status || '').toLowerCase() === 'approved'
-        );
+        let pendingLeaves = [];
+        let approvedLeaves = [];
+        
+        if (isHr) {
+            // HR sees leaves pending HR action
+            pendingLeaves = visibleLeaves.filter(leave =>
+                (leave.hodApproval === true || leave.hodApproval === "true") &&
+                !(leave.hrApproval === true || leave.hrApproval === "true")
+            );
+        
+            // HR-approved leaves (waiting for CEO OR fully approved)
+            approvedLeaves = visibleLeaves.filter(leave =>
+                leave.hrApproval === true || leave.hrApproval === "true"
+            );
+        }
+        
+        if (isCeo) {
+            // CEO sees leaves pending CEO action
+            pendingLeaves = visibleLeaves.filter(leave =>
+                (leave.hrApproval === true || leave.hrApproval === "true") &&
+                !(leave.ceoApproval === true || leave.ceoApproval === "true")
+            );
+        
+            // Fully approved leaves
+            approvedLeaves = visibleLeaves.filter(leave =>
+                leave.ceoApproval === true || leave.ceoApproval === "true"
+            );
+        }
+
     
         // 6️⃣ Header
         pageTitle.textContent = "All Staff Leaves";
