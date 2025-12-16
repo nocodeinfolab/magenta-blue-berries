@@ -1138,6 +1138,28 @@
                     return status === currentStatusFilter;
                 });
             }
+            // ✅ SORT LEAVES: Pending first, then Approved, then Rejected
+            filteredLeaves.sort((a, b) => {
+                const statusA = (a.status || '').toLowerCase();
+                const statusB = (b.status || '').toLowerCase();
+                
+                // Define sorting order
+                const order = { 'pending': 1, 'approved': 2, 'rejected': 3 };
+                
+                // Get order values (default to 99 if status not in order)
+                const orderA = order[statusA] || 99;
+                const orderB = order[statusB] || 99;
+                
+                // Primary sort by status
+                if (orderA !== orderB) {
+                    return orderA - orderB;
+                }
+                
+                // Secondary sort by start date (most recent first)
+                const dateA = new Date(a.startDate || 0);
+                const dateB = new Date(b.startDate || 0);
+                return dateB - dateA;
+            });
             
             teamLeaves = filteredLeaves;
             
