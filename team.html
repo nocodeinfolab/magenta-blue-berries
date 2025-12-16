@@ -476,36 +476,42 @@
                 leave.hrApproval === true || leave.hrApproval === "true"
             );
         }
+        // Step 3: Exclude rejected leaves from pending/approved
+        const nonRejectedLeaves = visibleLeaves.filter(leave =>
+            (leave.status || '').toLowerCase() !== 'rejected'
+        );
+
     
         // 5️⃣ Split leaves
         let pendingLeaves = [];
         let approvedLeaves = [];
         
         if (isHr) {
-            // HR sees leaves pending HR action
-            pendingLeaves = visibleLeaves.filter(leave =>
+            // HR: waiting for HR approval
+            pendingLeaves = nonRejectedLeaves.filter(leave =>
                 (leave.hodApproval === true || leave.hodApproval === "true") &&
                 !(leave.hrApproval === true || leave.hrApproval === "true")
             );
         
-            // HR-approved leaves (waiting for CEO OR fully approved)
-            approvedLeaves = visibleLeaves.filter(leave =>
+            // HR-approved leaves
+            approvedLeaves = nonRejectedLeaves.filter(leave =>
                 leave.hrApproval === true || leave.hrApproval === "true"
             );
         }
         
         if (isCeo) {
-            // CEO sees leaves pending CEO action
-            pendingLeaves = visibleLeaves.filter(leave =>
+            // CEO: waiting for CEO approval
+            pendingLeaves = nonRejectedLeaves.filter(leave =>
                 (leave.hrApproval === true || leave.hrApproval === "true") &&
                 !(leave.ceoApproval === true || leave.ceoApproval === "true")
             );
         
             // Fully approved leaves
-            approvedLeaves = visibleLeaves.filter(leave =>
+            approvedLeaves = nonRejectedLeaves.filter(leave =>
                 leave.ceoApproval === true || leave.ceoApproval === "true"
             );
         }
+
         // 5️⃣b Rejected leaves (visible to BOTH HR and CEO)
         const rejectedLeaves = visibleLeaves.filter(leave =>
             (leave.status || '').toLowerCase() === 'rejected'
