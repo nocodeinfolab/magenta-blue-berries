@@ -911,17 +911,19 @@
         if (canApprove) {
             modal.querySelector('.final-approve').addEventListener('click', function() {
                 const leaveId = this.getAttribute('data-leave-id');
-                approveFinalLeave(leaveId, true, userJobTitle.includes('HR') ? 'hr' : 'ceo');
+                approveFinalLeave(leaveId, true);
             });
-    
+            
             modal.querySelector('.final-reject').addEventListener('click', function() {
                 const leaveId = this.getAttribute('data-leave-id');
-                approveFinalLeave(leaveId, false, userJobTitle.includes('HR') ? 'hr' : 'ceo');
+                approveFinalLeave(leaveId, false);
             });
+
         }
     }
     
-    async function approveFinalLeave(leaveId, approve, approvalType) {
+    async function approveFinalLeave(leaveId, approve) {
+
         try {
             const modal = document.getElementById('allStaffLeaveModal');
             const actionSection = modal.querySelector('.approval-action-section');
@@ -935,7 +937,7 @@
             `;
     
             // Call backend API
-            await fetch(`${API_BASE}/leave/final-action`, {
+            const response = await fetch(`${API_BASE}/leave/final-action`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -946,8 +948,7 @@
                     action: approve ? 'approve' : 'reject'
                 })
             });
-
-    
+            
             const data = await response.json();
     
             if (data.success) {
@@ -1563,7 +1564,7 @@
             `;
     
             // Call backend API (to be implemented)
-            await fetch(`${API_BASE}/leave/hod-action`, {
+            const response = await fetch(`${API_BASE}/leave/hod-action`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -1574,7 +1575,7 @@
                     action: approve ? 'approve' : 'reject'
                 })
             });
-
+            
             const data = await response.json();
     
             if (data.success) {
