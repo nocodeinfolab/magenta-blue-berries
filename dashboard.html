@@ -1466,6 +1466,12 @@
                 </div>
                 
                 <div class="form-group">
+                    <label>Exclude Days (optional)</label>
+                    <div id="excludedDaysContainer" style="font-size:14px;"></div>
+                </div>
+
+                
+                <div class="form-group">
                     <label for="reason">Reason for Leave</label>
                     <textarea class="form-control" id="reason" rows="4" placeholder="Provide details for your leave request" required></textarea>
                 </div>
@@ -1528,6 +1534,8 @@
     let fullYearLeaveRecords = [];
     let currentCalendarDate = new Date();
     let approvedAnnualLeaveUsed = 0;
+    let excludedDates = new Set();
+
     
     /* =========================================================
        UTILITY HELPERS
@@ -1997,6 +2005,52 @@
     
         document.querySelector(`[data-tab="${tab}"]`).classList.add("active");
     }
+    function generateExcludableDays(start, end) {
+        const container = document.getElementById("excludedDaysContainer");
+        container.innerHTML = "";
+        excludedDates.clear();
+    
+        let current = new Date(start);
+    
+        while (current <= end) {
+            const day = current.getDay(); // 0 = Sun, 6 = Sat
+            const dateStr = current.toISOString().split("T")[0];
+    
+            // Only suggest weekends by default
+            if (day === 0 || day === 6) {
+                const label = document.createElement("label");
+                label.style.display = "block";
+    
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.value = dateStr;
+    
+                checkbox.addEventListener("change", () => {
+                    if (checkbox.checked) {
+                        excludedDates.add(dateStr);
+                    } else {
+                        excludedDates.delete(dateStr);
+                    }
+                    calculateDays(); // recalc after exclusion
+                });
+    
+                label.appendChild(checkbox);
+                label.append(
+                    " ",
+                    current.toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric"
+                    })
+                );
+    
+                container.appendChild(label);
+            }
+    
+            current.setDate(current.getDate() + 1);
+        }
+    }
+
     
     /* =========================================================
        CALCULATE DAYS FUNCTION
@@ -2017,14 +2071,22 @@
             return;
         }
     
-        const requestedDays =
+        const totalDays =
             Math.floor((e - s) / (1000 * 60 * 60 * 24)) + 1;
     
-        leaveDaysInput.value = requestedDays;
+        const excludedCount = excludedDates.size;
+        const finalDays = totalDays - excludedCount;
+    
+        if (finalDays <= 0) {
+            disableSubmit("All selected days are excluded.");
+            return;
+        }
+    
+        leaveDaysInput.value = finalDays;
     
         // Annual leave validation
         if (leaveTypeSelect.value === "Annual") {
-            const totalAfterRequest = approvedAnnualLeaveUsed + requestedDays;
+            const totalAfterRequest = approvedAnnualLeaveUsed + finalDays;
     
             if (totalAfterRequest > MAX_ANNUAL_LEAVE) {
                 const remaining = MAX_ANNUAL_LEAVE - approvedAnnualLeaveUsed;
@@ -2040,6 +2102,7 @@
     
         enableSubmit();
     }
+
 
     
     /* =========================================================
@@ -2073,8 +2136,22 @@
     /* =========================================================
        DATE INPUT HANDLERS
     ========================================================= */
-    startDateInput.addEventListener("change", calculateDays);
-    endDateInput.addEventListener("change", calculateDays);
+    function handleDateChange() {
+        if (!startDateInput.value || !endDateInput.value) {
+            return;
+        }
+    
+        generateExcludableDays(
+            new Date(startDateInput.value),
+            new Date(endDateInput.value)
+        );
+    
+        calculateDays();
+    }
+    
+    startDateInput.addEventListener("change", handleDateChange);
+    endDateInput.addEventListener("change", handleDateChange);
+
     leaveTypeSelect.addEventListener("change", function() {
         calculateDays();
         toggleAnnualLeaveInfoVisibility(); // Toggle visibility when leave type changes
