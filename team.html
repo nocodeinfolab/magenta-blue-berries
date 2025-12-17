@@ -935,7 +935,7 @@
             `;
     
             // Call backend API
-            const response = await fetch(`${API_BASE}/approve-leave`, {
+            await fetch(`${API_BASE}/leave/final-action`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -943,10 +943,10 @@
                 },
                 body: JSON.stringify({
                     leaveId: leaveId,
-                    action: approve ? 'approve' : 'reject',
-                    approvalType: approvalType // 'hr' or 'ceo'
+                    action: approve ? 'approve' : 'reject'
                 })
             });
+
     
             const data = await response.json();
     
@@ -1563,7 +1563,7 @@
             `;
     
             // Call backend API (to be implemented)
-            const response = await fetch(`${API_BASE}/approve-leave`, {
+            await fetch(`${API_BASE}/leave/hod-action`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -1571,11 +1571,10 @@
                 },
                 body: JSON.stringify({
                     leaveId: leaveId,
-                    action: approve ? 'approve' : 'reject',
-                    approvalType: 'hod'
+                    action: approve ? 'approve' : 'reject'
                 })
             });
-    
+
             const data = await response.json();
     
             if (data.success) {
