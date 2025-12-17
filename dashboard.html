@@ -1535,8 +1535,7 @@
     let currentCalendarDate = new Date();
     let approvedAnnualLeaveUsed = 0;
     let excludedDates = new Set();
-
-    
+    let publicHolidays = [];    
     /* =========================================================
        UTILITY HELPERS
     ========================================================= */
@@ -2005,6 +2004,21 @@
     
         document.querySelector(`[data-tab="${tab}"]`).classList.add("active");
     }
+    async function loadPublicHolidays(year) {
+        try {
+            const res = await fetch(
+                `${API_BASE}/public-holidays?year=${year}`,
+                { credentials: "include" }
+            );
+    
+            const data = await res.json();
+            publicHolidays = data.holidays || [];
+        } catch (err) {
+            console.error("Failed to load public holidays", err);
+            publicHolidays = [];
+        }
+    }
+
     function generateExcludableDays(start, end) {
         const container = document.getElementById("excludedDaysContainer");
         container.innerHTML = "";
@@ -2016,8 +2030,10 @@
             const day = current.getDay(); // 0 = Sun, 6 = Sat
             const dateStr = current.toISOString().split("T")[0];
     
-            // Only suggest weekends by default
-            if (day === 0 || day === 6) {
+            const isWeekend = day === 0 || day === 6;
+            const holiday = publicHolidays.find(h => h.date === dateStr);
+    
+            if (isWeekend || holiday) {
                 const label = document.createElement("label");
                 label.style.display = "block";
     
@@ -2031,18 +2047,23 @@
                     } else {
                         excludedDates.delete(dateStr);
                     }
-                    calculateDays(); // recalc after exclusion
+                    calculateDays();
                 });
     
                 label.appendChild(checkbox);
-                label.append(
-                    " ",
-                    current.toLocaleDateString("en-US", {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric"
-                    })
-                );
+    
+                if (holiday) {
+                    label.append(` ${holiday.name} (Public Holiday)`);
+                } else {
+                    label.append(
+                        " ",
+                        current.toLocaleDateString("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric"
+                        })
+                    );
+                }
     
                 container.appendChild(label);
             }
@@ -2051,7 +2072,6 @@
         }
     }
 
-    
     /* =========================================================
        CALCULATE DAYS FUNCTION
     ========================================================= */
@@ -2109,8 +2129,11 @@
        MODAL EVENT HANDLERS
     ========================================================= */
     applyLeaveBtn.addEventListener("click", async () => {
-        // Always refresh data before showing modal
-        await loadLeaveCalendarData(false); // false = don't render calendar
+        await loadLeaveCalendarData(false);
+    
+        // 🔹 Load public holidays for current year
+        await loadPublicHolidays(new Date().getFullYear());
+
         
         // Show annual leave info by default (Annual is default selection)
         if (modalAnnualLeaveInfo) {
