@@ -1882,23 +1882,15 @@
     });
     
     function rebindTeamDom() {
-        // Header
-        pageTitle = document.getElementById("pageTitle");
-        pageSubtitle = document.getElementById("pageSubtitle");
-        teamCount = document.getElementById("teamCount");
-    
-        // Manager
-        managerAvatar = document.getElementById("managerAvatar");
-        managerName = document.getElementById("managerName");
-        managerTitle = document.getElementById("managerTitle");
-        managerDepartment = document.getElementById("managerDepartment");
-        managerJobCategory = document.getElementById("managerJobCategory");
-        managerEmployeeId = document.getElementById("managerEmployeeId");
-    
-        // Team table
-        teamTableContainer = document.getElementById("teamTableContainer");
-        teamTableBody = document.getElementById("teamTableBody");
-        emptyState = document.getElementById("emptyState");
+        // NO NEED TO REASSIGN - elements already exist
+        // Just update the content if needed
+        console.log("rebindTeamDom called");
+        
+        // Re-populate dynamic data (this should refresh the content)
+        if (cachedTeamData) {
+            populateManagerProfile(cachedTeamData.manager);
+            populateTeamMembers(cachedTeamData.team);
+        }
     }
 
     
