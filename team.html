@@ -486,7 +486,28 @@
     }
 
     function renderAllStaffLeaves(allLeaves) {
-
+        console.log("🔍 DEBUG renderAllStaffLeaves - START");
+        console.log("🔍 Total leaves received:", allLeaves.length);
+        
+        // Debug: Check the first few leaves for id field
+        if (allLeaves.length > 0) {
+            console.log("🔍 Sample check - First 3 leaves:");
+            for (let i = 0; i < Math.min(3, allLeaves.length); i++) {
+                console.log(`  [${i}] leave.id:`, allLeaves[i].id, 
+                           "type:", typeof allLeaves[i].id,
+                           "employeeId:", allLeaves[i].employeeId);
+            }
+            
+            // Count leaves with/without id
+            const leavesWithId = allLeaves.filter(l => l.id != null && l.id !== "");
+            const leavesWithoutId = allLeaves.filter(l => l.id == null || l.id === "");
+            console.log(`🔍 Leaves WITH id: ${leavesWithId.length}, WITHOUT id: ${leavesWithoutId.length}`);
+            
+            if (leavesWithoutId.length > 0) {
+                console.log("🔍 Example leaf WITHOUT id:", leavesWithoutId[0]);
+            }
+        }
+    
         // 1️⃣ Permission check
         if (!hasAllStaffLeavesPermission(userJobTitle)) {
             pageTitle.textContent = "Access Denied";
@@ -512,6 +533,8 @@
         // 2️⃣ Role flags
         const isHr = isHRManager(userJobTitle);
         const isCeo = isCEO(userJobTitle);
+        
+        console.log("🔍 User role - isHR:", isHr, "isCEO:", isCeo);
     
         // 3️⃣ Dynamic subtitles
         const pendingSubtitle = isCeo
@@ -523,26 +546,48 @@
             : "Leaves approved by HOD and HR";
     
         // 4️⃣ Filter visible leaves
-        let visibleLeaves = allLeaves.filter(leave =>
-            leave.hodApproval === true || leave.hodApproval === "true"
-        );
+        console.log("🔍 Step 1 - Filtering by HOD approval...");
+        let visibleLeaves = allLeaves.filter(leave => {
+            const hasHodApproval = leave.hodApproval === true || leave.hodApproval === "true";
+            if (!hasHodApproval) {
+                console.log(`  Filtered out - leave.id: ${leave.id}, no HOD approval`);
+            }
+            return hasHodApproval;
+        });
+        
+        console.log(`🔍 After HOD filter: ${visibleLeaves.length} leaves`);
     
         if (isCeo) {
-            visibleLeaves = visibleLeaves.filter(leave =>
-                leave.hrApproval === true || leave.hrApproval === "true"
-            );
+            console.log("🔍 Step 2 - CEO: Filtering by HR approval...");
+            visibleLeaves = visibleLeaves.filter(leave => {
+                const hasHrApproval = leave.hrApproval === true || leave.hrApproval === "true";
+                if (!hasHrApproval) {
+                    console.log(`  Filtered out - leave.id: ${leave.id}, no HR approval`);
+                }
+                return hasHrApproval;
+            });
+            console.log(`🔍 After HR filter: ${visibleLeaves.length} leaves`);
         }
+        
+        // Check IDs after filtering
+        console.log("🔍 Checking IDs in visibleLeaves:");
+        visibleLeaves.forEach((leave, i) => {
+            console.log(`  [${i}] id: ${leave.id}, employeeId: ${leave.employeeId}, status: ${leave.status}`);
+        });
+    
         // Step 3: Exclude rejected leaves from pending/approved
         const nonRejectedLeaves = visibleLeaves.filter(leave =>
             (leave.status || '').toLowerCase() !== 'rejected'
         );
-
+        
+        console.log(`🔍 Non-rejected leaves: ${nonRejectedLeaves.length}`);
     
         // 5️⃣ Split leaves
         let pendingLeaves = [];
         let approvedLeaves = [];
         
         if (isHr) {
+            console.log("🔍 HR: Splitting leaves...");
             // HR: waiting for HR approval
             pendingLeaves = nonRejectedLeaves.filter(leave =>
                 (leave.hodApproval === true || leave.hodApproval === "true") &&
@@ -553,9 +598,12 @@
             approvedLeaves = nonRejectedLeaves.filter(leave =>
                 leave.hrApproval === true || leave.hrApproval === "true"
             );
+            
+            console.log(`🔍 HR - Pending: ${pendingLeaves.length}, Approved: ${approvedLeaves.length}`);
         }
         
         if (isCeo) {
+            console.log("🔍 CEO: Splitting leaves...");
             // CEO: waiting for CEO approval
             pendingLeaves = nonRejectedLeaves.filter(leave =>
                 (leave.hrApproval === true || leave.hrApproval === "true") &&
@@ -566,14 +614,27 @@
             approvedLeaves = nonRejectedLeaves.filter(leave =>
                 leave.ceoApproval === true || leave.ceoApproval === "true"
             );
+            
+            console.log(`🔍 CEO - Pending: ${pendingLeaves.length}, Approved: ${approvedLeaves.length}`);
         }
-
+    
         // 5️⃣b Rejected leaves (visible to BOTH HR and CEO)
         const rejectedLeaves = visibleLeaves.filter(leave =>
             (leave.status || '').toLowerCase() === 'rejected'
         );
-
-
+        
+        console.log(`🔍 Rejected leaves: ${rejectedLeaves.length}`);
+    
+        // Debug: Check IDs in each category
+        console.log("🔍 Final counts:");
+        console.log(`  Pending leaves: ${pendingLeaves.length}`);
+        console.log(`  Approved leaves: ${approvedLeaves.length}`);
+        console.log(`  Rejected leaves: ${rejectedLeaves.length}`);
+        
+        if (pendingLeaves.length > 0) {
+            console.log("🔍 First pending leave:", pendingLeaves[0]);
+            console.log("🔍 First pending leave.id:", pendingLeaves[0].id);
+        }
     
         // 6️⃣ Header
         pageTitle.textContent = "All Staff Leaves";
@@ -615,6 +676,8 @@
                     </div>
                     ${renderLeavesTable(approvedLeaves, 'approved')}
                 </div>
+                
+                ${rejectedLeaves.length > 0 ? `
                 <div class="status-group rejected">
                     <div class="status-group-header">
                         <div class="status-group-title">
@@ -628,6 +691,7 @@
                     </div>
                     ${renderLeavesTable(rejectedLeaves, 'rejected')}
                 </div>
+                ` : ''}
     
                 ${visibleLeaves.length === 0 ? `
                     <div class="empty-table-state">
@@ -647,17 +711,34 @@
         setTimeout(() => {
             document.querySelectorAll('.leave-row').forEach(row => {
                 row.addEventListener('click', function () {
-                    showAllStaffLeaveModal(
-                        JSON.parse(this.dataset.leaveData),
-                        JSON.parse(this.dataset.memberData)
-                    );
+                    console.log("🔍 Row clicked - checking data...");
+                    
+                    // Debug what's in the data attribute
+                    const rawData = this.getAttribute('data-leave-data');
+                    console.log("🔍 Raw data attribute:", rawData ? rawData.substring(0, 100) + "..." : "EMPTY");
+                    
+                    try {
+                        const leaveData = JSON.parse(this.dataset.leaveData);
+                        const memberData = JSON.parse(this.dataset.memberData);
+                        
+                        console.log("🔍 Parsed leaveData:", leaveData);
+                        console.log("🔍 Parsed leaveData.id:", leaveData.id, "(type:", typeof leaveData.id, ")");
+                        console.log("🔍 Parsed leaveData.employeeId:", leaveData.employeeId);
+                        
+                        showAllStaffLeaveModal(leaveData, memberData);
+                    } catch (e) {
+                        console.error("🔍 ERROR parsing JSON:", e);
+                    }
                 });
             });
         }, 100);
+        
+        console.log("🔍 DEBUG renderAllStaffLeaves - END");
     }
-
     
     function renderLeavesTable(leaves, statusType) {
+        console.log(`🔍 renderLeavesTable called for ${statusType}: ${leaves.length} leaves`);
+        
         if (leaves.length === 0) {
             return `
                 <div class="empty-table-state" style="margin: 20px; padding: 40px;">
@@ -665,28 +746,18 @@
                         <i class="fas fa-inbox"></i>
                     </div>
                     <h4>
-                        No ${
-                            statusType === 'approved'
-                                ? 'Approved'
-                                : statusType === 'rejected'
-                                ? 'Rejected'
-                                : 'Pending'
-                        } Leaves
+                        No ${statusType === 'approved' ? 'Approved' : statusType === 'rejected' ? 'Rejected' : 'Pending'} Leaves
                     </h4>
-
                     <p>
-                        There are no ${
-                            statusType === 'approved'
-                                ? 'approved'
-                                : statusType === 'rejected'
-                                ? 'rejected'
-                                : 'pending'
-                        } leave requests at the moment.
+                        There are no ${statusType} leave requests at the moment.
                     </p>
-
                 </div>
             `;
         }
+        
+        // Debug first leave
+        console.log(`🔍 First ${statusType} leave:`, leaves[0]);
+        console.log(`🔍 First ${statusType} leave.id:`, leaves[0].id);
         
         return `
             <div class="table-responsive">
@@ -720,6 +791,11 @@
                             }
                             
                             const initials = getInitials(member.fullName);
+                            
+                            // Debug each leave being rendered
+                            if (index === 0) {
+                                console.log(`🔍 Rendering first ${statusType} row - leave.id:`, leave.id);
+                            }
                             
                             return `
                                 <tr class="leave-row" 
