@@ -376,44 +376,57 @@
         }
 
         // Form submission
+        // Form submission
         passwordResetForm.addEventListener("submit", async (e) => {
             e.preventDefault();
-    
+        
             errorAlert.style.display = "none";
             successAlert.style.display = "none";
-    
+        
             // Validate username format (all caps with spaces)
             const username = usernameInput.value.trim();
             if (username !== username.toUpperCase()) {
                 showAlert('error', 'Username must be in ALL UPPERCASE letters');
                 return;
             }
-
+        
+            // Check for minimum 2 words (Surname and Firstname at least)
+            const nameParts = username.split(' ').filter(part => part.trim());
+            if (nameParts.length < 2) {
+                showAlert('error', 'Username must include at least SURNAME and FIRSTNAME');
+                return;
+            }
+        
             if (!validatePasswords()) {
                 showAlert('error', 'Passwords do not match');
                 return;
             }
-    
+        
+            // Check password length
+            if (newPasswordInput.value.length < 6) {
+                showAlert('error', 'Password must be at least 6 characters');
+                return;
+            }
+        
             resetBtn.disabled = true;
             spinner.style.display = "inline-block";
             resetBtn.querySelector('span').textContent = 'Resetting...';
-    
+        
             try {
                 const res = await fetch("https://asiukpohr.nocodeinfolab.workers.dev/reset-password", {
                     method: "POST",
                     headers: { 
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
                         username: username,
                         newPassword: newPasswordInput.value
                     })
                 });
-    
+        
                 const data = await res.json();
                 console.log('Reset password response:', data);
-    
+        
                 if (!res.ok || !data.success) {
                     const errorMsg = data.message || "Failed to reset password";
                     showAlert("error", errorMsg);
@@ -426,7 +439,7 @@
                 console.error('Reset password error:', error);
                 showAlert("error", "Network error. Please try again.");
             }
-    
+        
             resetBtn.disabled = false;
             spinner.style.display = "none";
             resetBtn.querySelector('span').textContent = 'Reset Password';
