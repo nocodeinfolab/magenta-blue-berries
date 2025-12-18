@@ -1838,9 +1838,6 @@
                     // Restore original Team Management UI
                     document.querySelector(".main-content").innerHTML = originalTeamViewHTML;
                 
-                    // Re-bind DOM references (important)
-                    rebindTeamDom();
-                
                     // Re-populate dynamic data
                     populateManagerProfile(cachedTeamData.manager);
                     populateTeamMembers(cachedTeamData.team);
@@ -1881,17 +1878,7 @@
         });
     });
     
-    function rebindTeamDom() {
-        // NO NEED TO REASSIGN - elements already exist
-        // Just update the content if needed
-        console.log("rebindTeamDom called");
-        
-        // Re-populate dynamic data (this should refresh the content)
-        if (cachedTeamData) {
-            populateManagerProfile(cachedTeamData.manager);
-            populateTeamMembers(cachedTeamData.team);
-        }
-    }
+    
 
     
     /* =========================================================
