@@ -468,6 +468,69 @@
             resetErrorAlert.style.display = 'none';
         }
     });
+    // Reset Password Elements
+    const requestResetBtn = document.getElementById('requestResetBtn');
+    
+    // Function to show reset alerts
+    function showResetAlert(type, message) {
+        resetErrorAlert.textContent = message;
+        resetErrorAlert.className = `alert alert-${type}`;
+        resetErrorAlert.style.display = 'block';
+        setTimeout(() => resetErrorAlert.style.display = 'none', 5000);
+    }
+    
+    // Request reset link
+    requestResetBtn.addEventListener('click', async () => {
+        const email = resetEmail.value.trim();
+        
+        if (!email) {
+            showResetAlert('error', 'Please enter your email address');
+            return;
+        }
+        
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showResetAlert('error', 'Please enter a valid email address');
+            return;
+        }
+        
+        // Disable button and show loading
+        requestResetBtn.disabled = true;
+        const originalText = requestResetBtn.textContent;
+        requestResetBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        
+        try {
+            const res = await fetch('https://asiukpohr.nocodeinfolab.workers.dev/reset-password-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            
+            const data = await res.json();
+            console.log('Reset response:', data); // For debugging
+            
+            if (data.success) {
+                showResetAlert('success', data.message);
+                // Clear the email field
+                resetEmail.value = '';
+                // Close modal after 3 seconds
+                setTimeout(() => {
+                    resetModal.classList.remove('active');
+                    resetErrorAlert.style.display = 'none';
+                }, 3000);
+            } else {
+                showResetAlert('error', data.message || 'Failed to send reset link');
+            }
+        } catch (error) {
+            console.error('Reset error:', error);
+            showResetAlert('error', 'Network error. Please try again.');
+        } finally {
+            // Re-enable button
+            requestResetBtn.disabled = false;
+            requestResetBtn.textContent = originalText;
+        }
+    });
 </script>
 </body>
 </html>
