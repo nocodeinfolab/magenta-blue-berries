@@ -945,12 +945,12 @@
                             </p>
 
                             <div class="approval-actions">
-                                <button class="approve-btn final-approve">
+                                <button class="approve-btn final-approve" data-leave-id="${leave.id}">
                                     <i class="fas fa-thumbs-up"></i>
                                     ${isHr ? 'HR Approve' : 'CEO Approve'}
                                 </button>
 
-                                <button class="reject-btn final-reject" data-leave-id="${leave.id || leave.employeeId}">
+                                <button class="reject-btn final-reject" data-leave-id="${leave.id}">
                                     <i class="fas fa-thumbs-down"></i>
                                     Reject
                                 </button>
