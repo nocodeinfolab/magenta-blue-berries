@@ -1494,8 +1494,8 @@
        GLOBAL CONFIG
     ========================================================= */
     const API_BASE = "https://asiukpohr.nocodeinfolab.workers.dev";
-    const MAX_ANNUAL_LEAVE = 24;
-    
+    let MAX_ANNUAL_LEAVE = 24; // fallback default
+
     /* =========================================================
        DOM ELEMENTS
     ========================================================= */
@@ -1863,7 +1863,8 @@
        POPULATE DASHBOARD
     ========================================================= */
     function populateDashboard(profile) {
-        userData = profile;            
+        userData = profile;
+        MAX_ANNUAL_LEAVE = Number(profile.annualLeaveEntitlement) || 24;
         document.getElementById("headerTitle").textContent = `Welcome back, ${profile.firstName || profile.fullName}!`;
         document.getElementById("userAvatar").textContent = getInitials(profile.fullName);
         document.getElementById("sidebarUserName").textContent = profile.firstName || profile.fullName;
