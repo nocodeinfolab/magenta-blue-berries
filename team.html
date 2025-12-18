@@ -923,12 +923,40 @@
     }
     
     async function approveFinalLeave(leaveId, approve) {
-
+        console.log("🔍 FRONTEND DEBUG - approveFinalLeave() called");
+        console.log("🔍 Parameters received:");
+        console.log("   - leaveId:", leaveId, "(type:", typeof leaveId, ")");
+        console.log("   - approve:", approve, "(type:", typeof approve, ")");
+        
+        // Validate inputs
+        if (!leaveId) {
+            console.error("🔍 ERROR: leaveId is falsy!");
+            alert("Error: Leave ID is missing");
+            return;
+        }
+        
+        if (typeof approve !== 'boolean') {
+            console.error("🔍 ERROR: approve is not a boolean!");
+            alert("Error: Invalid approval state");
+            return;
+        }
+        
         try {
             const modal = document.getElementById('allStaffLeaveModal');
+            if (!modal) {
+                console.error("🔍 ERROR: Modal not found!");
+                return;
+            }
+            
             const actionSection = modal.querySelector('.approval-action-section');
+            if (!actionSection) {
+                console.error("🔍 ERROR: Action section not found in modal!");
+                return;
+            }
+            
             const originalHTML = actionSection.innerHTML;
             
+            // Show loading state
             actionSection.innerHTML = `
                 <div class="loading-approval">
                     <div class="spinner-small"></div>
@@ -936,22 +964,59 @@
                 </div>
             `;
     
-            // Call backend API
+            // Prepare request data
+            const requestData = {
+                leaveId: leaveId,
+                action: approve ? 'approve' : 'reject'
+            };
+            
+            console.log("🔍 Request data to send:", requestData);
+            console.log("🔍 Stringified request data:", JSON.stringify(requestData));
+            
+            // Make API call
+            console.log("🔍 Making fetch request to:", `${API_BASE}/leave/final-action`);
+            
             const response = await fetch(`${API_BASE}/leave/final-action`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    leaveId: leaveId,
-                    action: approve ? 'approve' : 'reject'
-                })
+                body: JSON.stringify(requestData)
             });
             
-            const data = await response.json();
-    
+            console.log("🔍 Response received:");
+            console.log("   - Status:", response.status);
+            console.log("   - Status text:", response.statusText);
+            console.log("   - OK:", response.ok);
+            
+            // Get response text (whether success or error)
+            const responseText = await response.text();
+            console.log("🔍 Raw response text:", responseText);
+            
+            let data;
+            try {
+                data = JSON.parse(responseText);
+                console.log("🔍 Parsed response data:", data);
+            } catch (parseError) {
+                console.error("🔍 ERROR: Failed to parse JSON response:", parseError);
+                console.error("🔍 Raw response that failed to parse:", responseText);
+                
+                actionSection.innerHTML = `
+                    <div class="approval-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Server returned invalid response. Please try again.</p>
+                        <p>Status: ${response.status} ${response.statusText}</p>
+                        <button class="modal-close-btn secondary" onclick="location.reload()">
+                            Retry
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
             if (data.success) {
+                console.log("🔍 SUCCESS: Leave processed successfully");
                 actionSection.innerHTML = `
                     <div class="approval-success">
                         <i class="fas fa-check-circle"></i>
@@ -962,10 +1027,12 @@
                     </div>
                 `;
             } else {
+                console.error("🔍 ERROR: Server returned failure:", data);
                 actionSection.innerHTML = `
                     <div class="approval-error">
                         <i class="fas fa-exclamation-circle"></i>
                         <p>Failed to process approval: ${data.message || 'Unknown error'}</p>
+                        ${data.error ? `<p>Error details: ${data.error}</p>` : ''}
                         <button class="modal-close-btn secondary" onclick="location.reload()">
                             Retry
                         </button>
@@ -974,19 +1041,25 @@
             }
     
         } catch (error) {
-            console.error('Approval error:', error);
-            const modal = document.getElementById('allStaffLeaveModal');
-            const actionSection = modal.querySelector('.approval-action-section');
+            console.error('🔍 NETWORK ERROR:', error);
+            console.error('🔍 Error stack:', error.stack);
             
-            actionSection.innerHTML = `
-                <div class="approval-error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <p>Network error: ${error.message}</p>
-                    <button class="modal-close-btn secondary" onclick="location.reload()">
-                        Retry
-                    </button>
-                </div>
-            `;
+            const modal = document.getElementById('allStaffLeaveModal');
+            if (modal) {
+                const actionSection = modal.querySelector('.approval-action-section');
+                if (actionSection) {
+                    actionSection.innerHTML = `
+                        <div class="approval-error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p>Network error: ${error.message}</p>
+                            <p>Please check your connection and try again.</p>
+                            <button class="modal-close-btn secondary" onclick="location.reload()">
+                                Retry
+                            </button>
+                        </div>
+                    `;
+                }
+            }
         }
     }
     
